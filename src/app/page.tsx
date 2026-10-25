@@ -37,6 +37,16 @@ export default function Home() {
     filteredQuestions[currentQuestionIndex];
   
   const isCorrect = currentQuestion && selectedOptionIndex === currentQuestion.correctOptionIndex;
+
+  
+  function startGame(level: GermanLevel) {
+    setSelectedLevel(level);
+    setCurrentQuestionIndex(0);
+    setSelectedOptionIndex(null);
+    setScore(0);
+    setGameStatus("playing");
+  }
+
   
   
   function handleAnswerSelection(optionIndex: number) {
@@ -78,6 +88,10 @@ export default function Home() {
     setSelectedOptionIndex(null);
   }
 
+  function changeLevel() {
+    setSelectedLevel(null);
+  }
+
 
 
   return (
@@ -88,23 +102,20 @@ export default function Home() {
 
       <p>Select your German proficiency level</p>
 
-      <div className="flex gap-4">
-        {levels.map((level) => (
-          <button
-            key={level}
-            onClick={() => {
-              setSelectedLevel(level);
-              setCurrentQuestionIndex(0);
-              setSelectedOptionIndex(null);
-              setScore(0);
-              setGameStatus("playing");
-            }}
-            className="rounded-lg border px-6 py-3 hover:bg-gray-100 hover:text-black"
-          >
-            {level}
-          </button>
-        ))}
+      {selectedLevel === null && (
+        <div className="flex gap-4">
+            {levels.map((level) => (
+              <button
+                key={level}
+                onClick={() => startGame(level)}
+                className="rounded-lg border px-6 py-3 hover:bg-gray-100 hover:text-black"
+              >
+                {level}
+              </button>
+            ))}
       </div>
+      )}
+      
 
       {currentQuestion && gameStatus === "playing" && (
         <section className="mt-8 text-center">
@@ -178,6 +189,24 @@ export default function Home() {
               }
             </p>
           )}
+
+          <div className="mt-6 flex justify-center gap-4">
+          {selectedLevel && (
+            <button
+              onClick={() => startGame(selectedLevel)}
+              className="mt-4 rounded-lg bg-blue-600 px-6 py-3 text-white"
+            >
+              Play Again
+            </button>
+          )}
+
+          <button
+            onClick={changeLevel}
+            className="mt-4 rounded-lg border px-6 py-3"
+          >
+            Change Level
+          </button>
+          </div>
         </section>
       )}
 
@@ -194,6 +223,24 @@ export default function Home() {
           <p className="mt-2">
             You&apos;ve completed the available sample questions.
           </p>
+
+          <div className="mt-6 flex justify-center gap-4">
+          {selectedLevel && (
+            <button
+              onClick={() => startGame(selectedLevel)}
+              className="mt-4 rounded-lg bg-blue-600 px-6 py-3 text-white"
+            >
+              Play Again
+            </button>
+          )}
+
+          <button
+            onClick={changeLevel}
+            className="mt-4 rounded-lg border px-6 py-3"
+          >
+            Change Level
+          </button>
+          </div>
         </section>
       )}
 
