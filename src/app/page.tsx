@@ -2,8 +2,7 @@
 "use client";
 
 import { useState } from "react";
-
-type GermanLevel = "A1" | "A2" | "B1" | "B2";
+import type { GermanLevel } from "@/types/quiz"
 
 const levels: GermanLevel[] = ["A1", "A2", "B1", "B2"];
 
