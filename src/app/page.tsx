@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 
-import type { GermanLevel } from "@/types/quiz"
+import type { GermanLevel } from "@/types/quiz";
 import { sampleQuestions } from "@/data/questions";
 
 //Components
