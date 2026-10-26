@@ -4,6 +4,9 @@ import { NextResponse } from "next/server";
 
 import type { GermanLevel } from "@/types/quiz";
 
+//Quiz Schema
+import { QuizBatchSchema } from "@/lib/quiz-schema";
+
 const validLevels: GermanLevel[] = ["A1", "A2", "B1", "B2"];
 
 export async function POST(request: Request) {
@@ -105,18 +108,25 @@ export async function POST(request: Request) {
     const generated: unknown = JSON.parse(rawResponse);
 
 
-    if (
-      !generated ||
-      typeof generated !== "object" ||
-      !("questions" in generated) ||
-      !Array.isArray(generated.questions)
-    ) {
-      throw new Error("AI returned an invalid question list");
+    
+    const validationResult =
+    QuizBatchSchema.safeParse(generated);
+
+    if (!validationResult.success) {
+        console.error(
+            "Invalid AI response:",
+            validationResult.error.issues
+        );
+
+    throw new Error("AI response failed validation");
     }
+
+    const validatedQuestions = validationResult.data.questions;
+
 
     return NextResponse.json({
       status: "ready",
-      questions: generated.questions,
+      questions: validatedQuestions,
     });
 
   } catch (error) {
