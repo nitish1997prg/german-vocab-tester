@@ -12,7 +12,6 @@ interface ResultScreenProps {
   onChangeLevel: () => void;
 }
 
-
 export default function ResultScreen({
   status,
   score,
@@ -24,47 +23,77 @@ export default function ResultScreen({
   const isGameOver = status === "gameOver";
 
   return (
-    <section className="mt-8 flex flex-col items-center gap-4 text-center">
-      <h2
-        className={`text-3xl font-bold ${
-          isGameOver ? "text-red-600" : "text-green-600"
+    <section className="flex w-full flex-col items-center gap-6 text-center">
+
+      {/* Result Icon */}
+      <div
+        className={`flex h-20 w-20 items-center justify-center rounded-full text-4xl ${
+          isGameOver
+            ? "bg-[#FCE8E6]"
+            : "bg-[#E4F3EC]"
         }`}
+        aria-hidden="true"
       >
-        {isGameOver
-          ? "Game Over!"
-          : "No More Words Available!"}
-      </h2>
-
-      <p>Level: {level}</p>
-
-      <div>
-        <p className="text-gray-500">Final Score</p>
-        <p className="text-4xl font-bold">{score}</p>
+        {isGameOver ? "🏁" : "🏆"}
       </div>
 
+      {/* Result Message */}
+      <div className="space-y-2">
+        <h2 className="text-2xl font-bold tracking-tight">
+          {isGameOver
+            ? "Game Over!"
+            : "No More Words Available!"}
+        </h2>
+
+        <p className="text-sm text-[var(--muted)]">
+          {isGameOver
+            ? "One wrong answer ends the challenge. How far did you get?"
+            : "You've reached the end of the available vocabulary for this session."}
+        </p>
+      </div>
+
+      {/* Final Score */}
+      <div className="flex w-full flex-col items-center gap-2 rounded-2xl bg-[#F3F8F5] p-6">
+        <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+          Final Score
+        </p>
+
+        <p className="text-6xl font-bold tabular-nums">
+          {score}
+        </p>
+
+        <span className="rounded-full bg-[#E4F3EC] px-4 py-2 text-sm font-semibold text-[var(--primary)]">
+          {level} Vocabulary
+        </span>
+      </div>
+
+      {/* Correct Answer */}
       {isGameOver && correctAnswer && (
-        <p>
-          Correct answer: {correctAnswer}
-        </p>
+        <div className="space-y-2">
+          <p className="text-sm text-[var(--muted)]">
+            The correct answer was
+          </p>
+
+          <p className="text-xl font-semibold text-[var(--primary)]">
+            {correctAnswer}
+          </p>
+        </div>
       )}
 
-      {!isGameOver && (
-        <p>
-          You&apos;ve completed the available questions.
-        </p>
-      )}
-
-      <div className="mt-4 flex gap-4">
+      {/* Actions */}
+      <div className="flex w-full flex-col gap-3">
         <button
+          type="button"
           onClick={onPlayAgain}
-          className="rounded-lg bg-blue-600 px-6 py-3 text-white"
+          className="w-full rounded-xl bg-[var(--primary)] px-6 py-4 font-semibold text-white transition-colors hover:bg-[#115740] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]"
         >
-          Play Again
+          Play Again →
         </button>
 
         <button
+          type="button"
           onClick={onChangeLevel}
-          className="rounded-lg border px-6 py-3"
+          className="w-full rounded-xl border-2 border-[var(--border)] bg-white px-6 py-4 font-semibold transition-colors hover:bg-[#F3F8F5] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]"
         >
           Change Level
         </button>

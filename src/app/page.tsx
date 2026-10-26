@@ -216,8 +216,13 @@ export default function Home() {
 
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center gap-6 p-6">
-      <h1 className="text-3xl font-bold">
+    <main className="flex min-h-dvh items-center justify-center px-3 py-6 sm:px-6 sm:py-10">
+       <div className=" flex w-full min-w-0 max-w-md flex-col
+        items-center gap-6 rounded-3xl
+        border border-[var(--border)]
+        bg-[var(--surface)]
+        p-5 shadow-sm sm:p-8">
+      <h1 className="text-center text-3xl font-bold tracking-tight">
         German Vocabulary Tester
       </h1>
 
@@ -298,8 +303,7 @@ export default function Home() {
         )}
 
 
-
-
+      </div>
 
     </main>
   );
