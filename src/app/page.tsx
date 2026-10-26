@@ -2,10 +2,14 @@
 "use client";
 
 import { useState } from "react";
+
 import type { GermanLevel } from "@/types/quiz"
 import { sampleQuestions } from "@/data/questions";
 
-const levels: GermanLevel[] = ["A1", "A2", "B1", "B2"];
+//Components
+import LevelSelector from "@/components/LevelSelector";
+import QuizCard from "@/components/QuizCard";
+import ResultScreen from "@/components/ResultScreen";
 
 type GameStatus =
   | "playing"
@@ -35,8 +39,6 @@ export default function Home() {
   //Get current question from filtered questions
   const currentQuestion =
     filteredQuestions[currentQuestionIndex];
-  
-  const isCorrect = currentQuestion && selectedOptionIndex === currentQuestion.correctOptionIndex;
 
   
   function startGame(level: GermanLevel) {
@@ -100,149 +102,41 @@ export default function Home() {
         German Vocabulary Tester
       </h1>
 
-      <p>Select your German proficiency level</p>
-
       {selectedLevel === null && (
-        <div className="flex gap-4">
-            {levels.map((level) => (
-              <button
-                key={level}
-                onClick={() => startGame(level)}
-                className="rounded-lg border px-6 py-3 hover:bg-gray-100 hover:text-black"
-              >
-                {level}
-              </button>
-            ))}
-      </div>
+        <LevelSelector onSelectLevel={startGame} />
       )}
       
 
       {currentQuestion && gameStatus === "playing" && (
-        <section className="mt-8 text-center">
-          <p className="mb-4 font-semibold">
-             Score: {score}
-          </p>
-          <h2 className="mb-4 text-2xl font-semibold">
-            {currentQuestion.word}
-          </h2>
-
-          <p className="mb-4">
-            What does this German word mean?
-          </p>
-
-          <div className="grid grid-cols-2 gap-4">
-            
-            {currentQuestion.options.map((option, index) => (
-              <button
-                key={index}
-                onClick={() => handleAnswerSelection(index)}
-                disabled={selectedOptionIndex !== null}
-                className={`rounded-lg border p-4 ${
-                  selectedOptionIndex === index
-                    ? isCorrect
-                      ? "border-green-500 bg-green-100 text-green-900"
-                      : "border-red-500 bg-red-100 text-red-900"
-                    : ""
-                }`}
-              >
-                {option}
-              </button>
-            ))}
-
-          </div>
-
-          {selectedOptionIndex !== null && (
-            <p className="mt-4 font-semibold">
-              {isCorrect ? "Correct!" : "Incorrect!"}
-            </p>
-          )}
-
-          {selectedOptionIndex !== null && isCorrect && (
-          <button
-            onClick={handleNextQuestion}
-            className="mt-4 rounded-lg bg-green-700 px-6 py-3 text-white"
-          >
-            Next Question
-          </button>
-        )}
-
-        </section>
+        <QuizCard
+          question={currentQuestion}
+          score={score}
+          selectedOptionIndex={selectedOptionIndex}
+          onSelectOption={handleAnswerSelection}
+          onNextQuestion={handleNextQuestion}
+        />
       )}
 
       
-      {gameStatus === "gameOver" && (
-        <section className="mt-8 text-center">
-          <h2 className="text-3xl font-bold text-red-600">
-            Game Over!
-          </h2>
+      {selectedLevel !== null &&
+        (gameStatus === "gameOver" ||
+          gameStatus === "noMoreWords") && (
+          <ResultScreen
+            status={gameStatus}
+            score={score}
+            level={selectedLevel}
+            correctAnswer={
+              currentQuestion
+                ? currentQuestion.options[
+                    currentQuestion.correctOptionIndex
+                  ]
+                : undefined
+            }
+            onPlayAgain={() => startGame(selectedLevel)}
+            onChangeLevel={changeLevel}
+          />
+        )}
 
-          <p className="mt-4">
-            Final Score: {score}
-          </p>
-
-          {currentQuestion && (
-            <p className="mt-2">
-              Correct answer: {
-                currentQuestion.options[
-                  currentQuestion.correctOptionIndex
-                ]
-              }
-            </p>
-          )}
-
-          <div className="mt-6 flex justify-center gap-4">
-          {selectedLevel && (
-            <button
-              onClick={() => startGame(selectedLevel)}
-              className="mt-4 rounded-lg bg-blue-600 px-6 py-3 text-white"
-            >
-              Play Again
-            </button>
-          )}
-
-          <button
-            onClick={changeLevel}
-            className="mt-4 rounded-lg border px-6 py-3"
-          >
-            Change Level
-          </button>
-          </div>
-        </section>
-      )}
-
-      {gameStatus === "noMoreWords" && (
-        <section className="mt-8 text-center">
-          <h2 className="text-3xl font-bold text-green-600">
-            No More Words Available!
-          </h2>
-
-          <p className="mt-4">
-            Final Score: {score}
-          </p>
-
-          <p className="mt-2">
-            You&apos;ve completed the available sample questions.
-          </p>
-
-          <div className="mt-6 flex justify-center gap-4">
-          {selectedLevel && (
-            <button
-              onClick={() => startGame(selectedLevel)}
-              className="mt-4 rounded-lg bg-blue-600 px-6 py-3 text-white"
-            >
-              Play Again
-            </button>
-          )}
-
-          <button
-            onClick={changeLevel}
-            className="mt-4 rounded-lg border px-6 py-3"
-          >
-            Change Level
-          </button>
-          </div>
-        </section>
-      )}
 
 
 
