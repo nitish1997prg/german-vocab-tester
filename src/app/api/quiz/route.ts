@@ -7,6 +7,9 @@ import type { GermanLevel } from "@/types/quiz";
 //Quiz Schema
 import { QuizBatchSchema } from "@/lib/quiz-schema";
 
+//Vocab filter - preserve uniqueness in a batch and across different batches
+import { filterUniqueQuestions } from "@/lib/quiz-uniqueness";
+
 const validLevels: GermanLevel[] = ["A1", "A2", "B1", "B2"];
 
 export async function POST(request: Request) {
@@ -122,6 +125,20 @@ export async function POST(request: Request) {
     }
 
     const validatedQuestions = validationResult.data.questions;
+
+    
+    const uniqueQuestions = filterUniqueQuestions(
+      validatedQuestions,
+      excludedWords,
+      level
+    );
+
+    if (uniqueQuestions.length === 0) {
+      throw new Error(
+        "AI generated no unique questions for this batch"
+      );
+    }
+
 
 
     return NextResponse.json({
