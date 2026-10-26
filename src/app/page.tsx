@@ -3,8 +3,9 @@
 
 import { useState } from "react";
 
-import type { GermanLevel } from "@/types/quiz";
-import { sampleQuestions } from "@/data/questions";
+//Types
+import type { GermanLevel, VocabularyQuestion } from "@/types/quiz";
+import type { GenerateQuizResponse } from "@/types/quiz-api";
 
 //Components
 import LevelSelector from "@/components/LevelSelector";
@@ -30,26 +31,75 @@ export default function Home() {
 
   const [gameStatus, setGameStatus] =
     useState<GameStatus>("playing");
+
   
-  //Filter questions based on level selected
-  const filteredQuestions = sampleQuestions.filter(
-    (question) => question.level === selectedLevel
-  );
+  const [questions, setQuestions] =
+    useState<VocabularyQuestion[]>([]);
+
+  const [isLoading, setIsLoading] =
+    useState(false);
+
+  const [error, setError] =
+    useState<string | null>(null);
+
 
   //Get current question from filtered questions
-  const currentQuestion =
-    filteredQuestions[currentQuestionIndex];
+  const currentQuestion = questions[currentQuestionIndex];
 
   
-  function startGame(level: GermanLevel) {
+  
+  async function startGame(level: GermanLevel) {
+    // Reset the previous game
     setSelectedLevel(level);
     setCurrentQuestionIndex(0);
     setSelectedOptionIndex(null);
     setScore(0);
     setGameStatus("playing");
+
+    setQuestions([]);
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      const response = await fetch("/api/quiz", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          level,
+          excludedWords: [],
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch vocabulary questions");
+      }
+
+      const data = (await response.json()) as GenerateQuizResponse;
+
+      if (data.status === "ready") {
+        if (data.questions.length === 0) {
+          throw new Error("No questions were returned");
+        }
+
+        setQuestions(data.questions);
+      } else if (data.status === "noMoreWords") {
+        setGameStatus("noMoreWords");
+      } else {
+        throw new Error("Unexpected API response");
+      }
+    } catch (err) {
+      console.error("Failed to start game:", err);
+
+      setError(
+        "Unable to generate questions. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   }
 
-  
   
   function handleAnswerSelection(optionIndex: number) {
     if (
@@ -81,7 +131,7 @@ export default function Home() {
 
     const nextIndex = currentQuestionIndex + 1;
 
-    if (nextIndex >= filteredQuestions.length) {
+    if (nextIndex >= questions.length) {
       setGameStatus("noMoreWords");
       return;
     }
@@ -95,7 +145,6 @@ export default function Home() {
   }
 
 
-
   return (
     <main className="min-h-screen flex flex-col items-center justify-center gap-6 p-6">
       <h1 className="text-3xl font-bold">
@@ -105,9 +154,40 @@ export default function Home() {
       {selectedLevel === null && (
         <LevelSelector onSelectLevel={startGame} />
       )}
+
+      
+      {isLoading && (
+        <p role="status" className="text-lg">
+          Generating your German vocabulary questions...
+        </p>
+      )}
+
+      {error && selectedLevel && (
+        <section
+          role="alert"
+          className="flex flex-col items-center gap-4"
+        >
+          <p className="text-red-600">{error}</p>
+
+          <button
+            onClick={() => void startGame(selectedLevel)}
+            className="rounded-lg bg-blue-600 px-6 py-3 text-white"
+          >
+            Try Again
+          </button>
+
+          <button
+            onClick={changeLevel}
+            className="rounded-lg border px-6 py-3"
+          >
+            Change Level
+          </button>
+        </section>
+      )}
+
       
 
-      {currentQuestion && gameStatus === "playing" && (
+      {currentQuestion && gameStatus === "playing" && !isLoading && !error && (
         <QuizCard
           question={currentQuestion}
           score={score}
