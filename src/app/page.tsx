@@ -1,16 +1,18 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect , useRef , useState } from "react";
 
 //Types
 import type { GermanLevel, VocabularyQuestion } from "@/types/quiz";
-import type { GenerateQuizResponse } from "@/types/quiz-api";
 
 //Components
 import LevelSelector from "@/components/LevelSelector";
 import QuizCard from "@/components/QuizCard";
 import ResultScreen from "@/components/ResultScreen";
+
+//Utility functions
+import { fetchQuizBatch } from "@/lib/quiz-client";
 
 type GameStatus =
   | "playing"
@@ -42,9 +44,92 @@ export default function Home() {
   const [error, setError] =
     useState<string | null>(null);
 
+  
+  const activeRequestRef =
+  useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => {
+      activeRequestRef.current?.abort();
+      activeRequestRef.current = null;
+    };
+  }, []);
+
 
   //Get current question from filtered questions
   const currentQuestion = questions[currentQuestionIndex];
+
+
+  
+  async function loadBatch(
+    level: GermanLevel,
+    excludedWords: string[],
+    mode: "replace" | "append"
+  ) {
+    // Cancel any previous request
+    activeRequestRef.current?.abort();
+
+    const controller = new AbortController();
+    activeRequestRef.current = controller;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const data = await fetchQuizBatch(
+        level,
+        excludedWords,
+        controller.signal
+      );
+
+      // Ignore an outdated response
+      if (activeRequestRef.current !== controller) {
+        return;
+      }
+
+      if (data.status === "noMoreWords") {
+        setGameStatus("noMoreWords");
+        return;
+      }
+
+      if (mode === "replace") {
+        setQuestions(data.questions);
+        setCurrentQuestionIndex(0);
+      } else {
+        setCurrentQuestionIndex(questions.length);
+
+        setQuestions((previous) => [
+          ...previous,
+          ...data.questions,
+        ]);
+      }
+
+      setSelectedOptionIndex(null);
+
+    } catch (err) {
+      if (
+        activeRequestRef.current !== controller ||
+        controller.signal.aborted
+      ) {
+        return;
+      }
+
+      console.error("Question loading failed:", err);
+
+      setError(
+        "Unable to load vocabulary questions. Please try again."
+      );
+
+    } finally {
+      if (activeRequestRef.current === controller) {
+        activeRequestRef.current = null;
+        setIsLoading(false);
+      }
+    }
+  }
+
+
+
 
   
   
@@ -55,49 +140,9 @@ export default function Home() {
     setSelectedOptionIndex(null);
     setScore(0);
     setGameStatus("playing");
-
     setQuestions([]);
-    setError(null);
-    setIsLoading(true);
 
-    try {
-      const response = await fetch("/api/quiz", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          level,
-          excludedWords: [],
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch vocabulary questions");
-      }
-
-      const data = (await response.json()) as GenerateQuizResponse;
-
-      if (data.status === "ready") {
-        if (data.questions.length === 0) {
-          throw new Error("No questions were returned");
-        }
-
-        setQuestions(data.questions);
-      } else if (data.status === "noMoreWords") {
-        setGameStatus("noMoreWords");
-      } else {
-        throw new Error("Unexpected API response");
-      }
-    } catch (err) {
-      console.error("Failed to start game:", err);
-
-      setError(
-        "Unable to generate questions. Please try again."
-      );
-    } finally {
-      setIsLoading(false);
-    }
+    void loadBatch(level,[],"replace");
   }
 
   
@@ -141,70 +186,23 @@ export default function Home() {
       return;
     }
 
-    // Case 2: We've reached the end of the batch
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const excludedWords = questions.map(
+    const excludedWords = questions.map(
         (question) => question.word
       );
 
-      const response = await fetch("/api/quiz", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          level: selectedLevel,
-          excludedWords,
-        }),
-      });
+    void loadBatch(
+      selectedLevel,
+      excludedWords,
+      "append"
+    );
 
-      if (!response.ok) {
-        throw new Error("Failed to generate next batch");
-      }
-
-      const data =
-        (await response.json()) as GenerateQuizResponse;
-
-      if (data.status === "ready") {
-        if (data.questions.length === 0) {
-          throw new Error("Received an empty question batch");
-        }
-
-        // Append the new questions
-        setQuestions((previousQuestions) => [
-          ...previousQuestions,
-          ...data.questions,
-        ]);
-
-        // Move to the first question in the new batch
-        setCurrentQuestionIndex(nextIndex);
-        setSelectedOptionIndex(null);
-
-      } else if (data.status === "noMoreWords") {
-        setGameStatus("noMoreWords");
-
-      } else {
-        throw new Error("Unexpected API response");
-      }
-
-    } catch (err) {
-      console.error("Failed to fetch next batch:", err);
-
-      setError(
-        "Unable to generate more questions. Please try again."
-      );
-
-    } finally {
-      setIsLoading(false);
-    }
   }
 
 
   
   function changeLevel() {
+    activeRequestRef.current?.abort();
+    activeRequestRef.current = null;
     setSelectedLevel(null);
     setQuestions([]);
     setCurrentQuestionIndex(0);
