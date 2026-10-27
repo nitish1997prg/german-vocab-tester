@@ -11,6 +11,7 @@ import {
 } from "vitest";
 
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -54,6 +55,73 @@ const questionTwo: VocabularyQuestion = {
   options: ["Apple", "House", "Water", "Book"],
   correctOptionIndex: 1,
 };
+
+
+function createQuestions(
+  start: number,
+  count: number
+): VocabularyQuestion[] {
+  return Array.from({ length: count }, (_, index) => {
+    const number = start + index;
+
+    return {
+      id: `q-${number}`,
+      level: "A1",
+      word: `das Testwort ${number}`,
+      options: [
+        `Meaning ${number}`,
+        "Mountain",
+        "River",
+        "Sky",
+      ],
+      correctOptionIndex: 0,
+    };
+  });
+}
+
+const firstBatch = createQuestions(1, 10);
+const secondBatch = createQuestions(11, 10);
+
+
+
+
+function answerCorrectlyThrough(lastQuestion: number) {
+  for (let number = 1; number <= lastQuestion; number++) {
+    if (number > 1) {
+      fireEvent.click(
+        screen.getByRole("button", {
+          name: /Next Question/i,
+        })
+      );
+    }
+
+    expect(
+      screen.getByText(`das Testwort ${number}`)
+    ).toBeTruthy();
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: new RegExp(`Meaning ${number}`, "i"),
+      })
+    );
+  }
+}
+
+
+
+function createDeferred<T>() {
+  let resolve!: (value: T) => void;
+  let reject!: (reason?: unknown) => void;
+
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+
+  return { promise, resolve, reject };
+}
+
+
 
 function startA1Game() {
   render(<Home />);
@@ -248,6 +316,332 @@ describe("German Vocabulary Gameplay", () => {
         screen.getByText("1")
     ).toBeTruthy();
     });
+
+
+
+});
+
+
+
+describe("Background Prefetching", () => {
+  it("prefetches after question 5 without blocking gameplay", async () => {
+    mockFetchQuizBatch.mockResolvedValueOnce({
+      status: "ready",
+      questions: firstBatch,
+    });
+
+    // Keep the background request pending
+    mockFetchQuizBatch.mockImplementationOnce(
+      () => new Promise(() => {})
+    );
+
+    startA1Game();
+
+    await screen.findByText("das Testwort 1");
+
+    // Answer questions 1–4
+    answerCorrectlyThrough(4);
+
+    // No background request yet
+    expect(mockFetchQuizBatch).toHaveBeenCalledTimes(1);
+
+    // Advance and answer question 5
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /Next Question/i,
+      })
+    );
+
+    fireEvent.click(
+    screen.getByRole("button", {
+      name: /Meaning 5\b/i,
+    })
+  );
+
+    // Prefetch should have started
+    expect(mockFetchQuizBatch).toHaveBeenCalledTimes(2);
+
+    // Continue playing while fetch is unresolved
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /Next Question/i,
+      })
+    );
+
+    expect(
+      screen.getByText("das Testwort 6")
+    ).toBeTruthy();
+  });
+
+  
+  it("waits for the existing request instead of fetching twice", async () => {
+    const deferred = createDeferred<{
+      status: "ready";
+      questions: VocabularyQuestion[];
+    }>();
+
+    mockFetchQuizBatch
+      .mockResolvedValueOnce({
+        status: "ready",
+        questions: firstBatch,
+      })
+      .mockImplementationOnce(() => deferred.promise);
+
+    startA1Game();
+
+    await screen.findByText("das Testwort 1");
+
+    // Player answers all 10 questions quickly
+    answerCorrectlyThrough(10);
+
+    expect(mockFetchQuizBatch).toHaveBeenCalledTimes(2);
+
+    // Player requests question 11
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /Next Question/i,
+      })
+    );
+
+    // No third request should be created
+    expect(mockFetchQuizBatch).toHaveBeenCalledTimes(2);
+
+    // Finish the existing background request
+    await act(async () => {
+      deferred.resolve({
+        status: "ready",
+        questions: secondBatch,
+      });
+
+      await deferred.promise;
+    });
+
+    expect(
+      await screen.findByText("das Testwort 11")
+    ).toBeTruthy();
+
+    expect(mockFetchQuizBatch).toHaveBeenCalledTimes(2);
+  });
+
+  
+  
+  it("recovers from a failed background prefetch", async () => {
+    const deferred = createDeferred<{
+      status: "ready";
+      questions: VocabularyQuestion[];
+    }>();
+
+    mockFetchQuizBatch
+      .mockResolvedValueOnce({
+        status: "ready",
+        questions: firstBatch,
+      })
+      .mockImplementationOnce(() => deferred.promise)
+      .mockResolvedValueOnce({
+        status: "ready",
+        questions: secondBatch,
+      });
+
+    startA1Game();
+
+    await screen.findByText("das Testwort 1");
+
+    // Answer questions 1–5.
+    // Question 5 triggers background prefetching.
+    answerCorrectlyThrough(5);
+
+    expect(mockFetchQuizBatch).toHaveBeenCalledTimes(2);
+
+    // Explicitly fail the background request.
+    // Wait for React to process the failure.
+    await act(async () => {
+      deferred.reject(
+        new Error("Claude temporarily unavailable")
+      );
+
+      await deferred.promise.catch(() => {});
+    });
+
+    // The game should still display question 5.
+    expect(
+      screen.getByText("das Testwort 5")
+    ).toBeTruthy();
+
+    // Continue answering questions 6–10.
+    for (let number = 6; number <= 10; number++) {
+      fireEvent.click(
+        screen.getByRole("button", {
+          name: /Next Question/i,
+        })
+      );
+
+      expect(
+        screen.getByText(`das Testwort ${number}`)
+      ).toBeTruthy();
+
+      fireEvent.click(
+        screen.getByRole("button", {
+          name: new RegExp(`Meaning ${number}\\b`, "i"),
+        })
+      );
+    }
+
+    // Request question 11.
+    // Since the earlier prefetch already failed,
+    // the application should start a new request.
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /Next Question/i,
+      })
+    );
+
+    expect(
+      await screen.findByText("das Testwort 11")
+    ).toBeTruthy();
+
+    // Initial request + failed prefetch + recovery request.
+    expect(mockFetchQuizBatch).toHaveBeenCalledTimes(3);
+  });
+
+
+  
+  it("finishes buffered questions before showing exhaustion", async () => {
+    mockFetchQuizBatch
+      .mockResolvedValueOnce({
+        status: "ready",
+        questions: firstBatch,
+      })
+      .mockResolvedValueOnce({
+        status: "noMoreWords",
+        questions: [],
+      });
+
+    startA1Game();
+
+    await screen.findByText("das Testwort 1");
+
+    answerCorrectlyThrough(5);
+
+    // Allow the background response to finish
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    // Player can continue to question 6
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /Next Question/i,
+      })
+    );
+
+    expect(
+      screen.getByText("das Testwort 6")
+    ).toBeTruthy();
+
+    
+    // Continue through question 10
+    for (let number = 6; number <= 10; number++) {
+      if (number > 6) {
+        fireEvent.click(
+          screen.getByRole("button", {
+            name: /Next Question/i,
+          })
+        );
+      }
+
+      // Verify the expected question is displayed
+      expect(
+        screen.getByText(`das Testwort ${number}`)
+      ).toBeTruthy();
+
+      // Match the answer even if it includes an option label
+      fireEvent.click(
+        screen.getByRole("button", {
+          name: new RegExp(`Meaning ${number}\\b`, "i"),
+        })
+      );
+    }
+
+
+    // Now there are no buffered questions left
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /Next Question/i,
+      })
+    );
+
+    expect(
+      await screen.findByRole("heading", {
+        name: /No More Words Available/i,
+      })
+    ).toBeTruthy();
+
+    expect(mockFetchQuizBatch).toHaveBeenCalledTimes(2);
+  });
+
+  
+  it("cancels prefetch when the player answers incorrectly", async () => {
+    const deferred = createDeferred<{
+      status: "ready";
+      questions: VocabularyQuestion[];
+    }>();
+
+    mockFetchQuizBatch
+      .mockResolvedValueOnce({
+        status: "ready",
+        questions: firstBatch,
+      })
+      .mockImplementationOnce(() => deferred.promise);
+
+    startA1Game();
+
+    await screen.findByText("das Testwort 1");
+
+    answerCorrectlyThrough(5);
+
+    expect(mockFetchQuizBatch).toHaveBeenCalledTimes(2);
+
+    // Advance to question 6
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /Next Question/i,
+      })
+    );
+
+    // Wrong answer
+    fireEvent.click(
+    screen.getByRole("button", {
+      name: /Mountain/i,
+    })
+  );
+
+    expect(
+      screen.getByRole("heading", {
+        name: /Game Over/i,
+      })
+    ).toBeTruthy();
+
+    const signal = mockFetchQuizBatch.mock.calls[1][2];
+
+    expect(signal.aborted).toBe(true);
+
+    // Even a late response must not restart gameplay
+    await act(async () => {
+      deferred.resolve({
+        status: "ready",
+        questions: secondBatch,
+      });
+
+      await deferred.promise;
+    });
+
+    expect(
+      screen.getByRole("heading", {
+        name: /Game Over/i,
+      })
+    ).toBeTruthy();
+  });
+
 
 
 
