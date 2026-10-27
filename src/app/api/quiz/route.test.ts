@@ -111,42 +111,48 @@ describe("POST /api/quiz", () => {
   });
 
   
-    it("retries after malformed AI JSON", async () => {
+    
+  it("retries after malformed AI JSON", async () => {
     const words = [
-        ["der Apfel", "Apple"],
-        ["das Haus", "House"],
-        ["die Katze", "Cat"],
-        ["das Buch", "Book"],
-        ["der Tisch", "Table"],
+      ["der Apfel", "Apple"],
+      ["das Haus", "House"],
+      ["die Katze", "Cat"],
+      ["das Buch", "Book"],
+      ["der Tisch", "Table"],
+      ["der Hund", "Dog"],
+      ["die Schule", "School"],
+      ["das Fenster", "Window"],
+      ["die Blume", "Flower"],
+      ["der Garten", "Garden"],
     ];
 
     const validQuestions = words.map(([word, meaning], index) => ({
-        id: `q-${index}`,
-        level: "A1",
-        word,
-        options: [
+      id: `q-${index}`,
+      level: "A1",
+      word,
+      options: [
         meaning,
         "Mountain",
         "River",
         "Sky",
-        ],
-        correctOptionIndex: 0,
+      ],
+      correctOptionIndex: 0,
     }));
 
     mockCreateMessage
-        .mockResolvedValueOnce({
+      .mockResolvedValueOnce({
         content: [
-            { type: "text", text: "{invalid-json" },
+          { type: "text", text: "{invalid-json" },
         ],
-        })
-        .mockResolvedValueOnce(
+      })
+      .mockResolvedValueOnce(
         mockAIResponse({
-            questions: validQuestions,
+          questions: validQuestions,
         })
-        );
+      );
 
     const response = await POST(
-        createRequest("A1")
+      createRequest("A1")
     );
 
     expect(response.status).toBe(200);
@@ -154,10 +160,11 @@ describe("POST /api/quiz", () => {
     const data = await response.json();
 
     expect(data.status).toBe("ready");
-    expect(data.questions).toHaveLength(5);
+    expect(data.questions).toHaveLength(10);
 
     expect(mockCreateMessage).toHaveBeenCalledTimes(2);
-    });
+  });
+
 
 
   

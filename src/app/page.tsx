@@ -43,10 +43,20 @@ export default function Home() {
 
   const [error, setError] =
     useState<string | null>(null);
+  
+  const [isPrefetching, setIsPrefetching] = useState(false);
+
+  const [noMoreWordsAvailable, setNoMoreWordsAvailable] =
+    useState(false);
 
   
   const activeRequestRef =
   useRef<AbortController | null>(null);
+
+  const waitingForNextRef = useRef(false);
+
+  const prefetchAttemptedAtLengthRef =
+  useRef<number | null>(null);
 
   useEffect(() => {
     return () => {
@@ -61,18 +71,25 @@ export default function Home() {
 
 
   
+  
   async function loadBatch(
     level: GermanLevel,
     excludedWords: string[],
-    mode: "replace" | "append"
+    mode: "replace" | "append",
+    background = false
   ) {
-    // Cancel any previous request
+    // Cancel an older request, if one exists
     activeRequestRef.current?.abort();
 
     const controller = new AbortController();
     activeRequestRef.current = controller;
 
-    setIsLoading(true);
+    if (background) {
+      setIsPrefetching(true);
+    } else {
+      setIsLoading(true);
+    }
+
     setError(null);
 
     try {
@@ -82,29 +99,42 @@ export default function Home() {
         controller.signal
       );
 
-      // Ignore an outdated response
+      // Ignore outdated responses
       if (activeRequestRef.current !== controller) {
         return;
       }
 
       if (data.status === "noMoreWords") {
-        setGameStatus("noMoreWords");
+        setNoMoreWordsAvailable(true);
+
+        // Only finish when no playable questions remain
+        if (
+          mode === "replace" ||
+          waitingForNextRef.current
+        ) {
+          setGameStatus("noMoreWords");
+        }
+
         return;
       }
 
       if (mode === "replace") {
         setQuestions(data.questions);
         setCurrentQuestionIndex(0);
+        setSelectedOptionIndex(null);
       } else {
-        setCurrentQuestionIndex(questions.length);
-
+        // Append newly generated vocabulary
         setQuestions((previous) => [
           ...previous,
           ...data.questions,
         ]);
-      }
 
-      setSelectedOptionIndex(null);
+        // The player reached the end while we were fetching
+        if (waitingForNextRef.current) {
+          setCurrentQuestionIndex((previous) => previous + 1);
+          setSelectedOptionIndex(null);
+        }
+      }
 
     } catch (err) {
       if (
@@ -116,17 +146,26 @@ export default function Home() {
 
       console.error("Question loading failed:", err);
 
-      setError(
-        "Unable to load vocabulary questions. Please try again."
-      );
+      // Background failures should not interrupt gameplay.
+      // Show the error if the learner actually needs more words.
+      if (!background || waitingForNextRef.current) {
+        setError(
+          "Unable to load vocabulary questions. Please try again."
+        );
+      }
 
     } finally {
       if (activeRequestRef.current === controller) {
         activeRequestRef.current = null;
+
         setIsLoading(false);
+        setIsPrefetching(false);
+
+        waitingForNextRef.current = false;
       }
     }
   }
+
 
 
 
@@ -141,10 +180,16 @@ export default function Home() {
     setScore(0);
     setGameStatus("playing");
     setQuestions([]);
+    setIsPrefetching(false);
+    setNoMoreWordsAvailable(false);
+
+    waitingForNextRef.current = false;
+    prefetchAttemptedAtLengthRef.current = null;
 
     void loadBatch(level,[],"replace");
   }
 
+  
   
   function handleAnswerSelection(optionIndex: number) {
     if (
@@ -157,46 +202,104 @@ export default function Home() {
 
     setSelectedOptionIndex(optionIndex);
 
-    if (optionIndex === currentQuestion.correctOptionIndex) {
-      setScore((previousScore) => previousScore + 1);
-    } else {
+    const isCorrect =
+      optionIndex === currentQuestion.correctOptionIndex;
+
+    if (!isCorrect) {
+      // Stop an unnecessary background request
+      activeRequestRef.current?.abort();
+      activeRequestRef.current = null;
+      setIsPrefetching(false);
+
       setGameStatus("gameOver");
+      return;
+    }
+
+    setScore((previousScore) => previousScore + 1);
+
+    const remainingQuestions =
+      questions.length - (currentQuestionIndex + 1);
+
+    const shouldPrefetch =
+      remainingQuestions <= 5 &&
+      selectedLevel !== null &&
+      !noMoreWordsAvailable &&
+      !activeRequestRef.current &&
+      prefetchAttemptedAtLengthRef.current !==
+        questions.length;
+
+    if (shouldPrefetch && selectedLevel) {
+      prefetchAttemptedAtLengthRef.current =
+        questions.length;
+
+      const excludedWords = questions.map(
+        (question) => question.word
+      );
+
+      void loadBatch(
+        selectedLevel,
+        excludedWords,
+        "append",
+        true
+      );
     }
   }
 
+
   
   
-  async function handleNextQuestion() {
+  
+  function handleNextQuestion() {
     if (
       gameStatus !== "playing" ||
       !currentQuestion ||
       !selectedLevel ||
       isLoading ||
-      selectedOptionIndex !== currentQuestion.correctOptionIndex
+      waitingForNextRef.current ||
+      selectedOptionIndex !==
+        currentQuestion.correctOptionIndex
     ) {
       return;
     }
 
     const nextIndex = currentQuestionIndex + 1;
 
-    // Case 1: Another question is already available
+    // There is already another question available
     if (nextIndex < questions.length) {
       setCurrentQuestionIndex(nextIndex);
       setSelectedOptionIndex(null);
       return;
     }
 
+    // No buffered questions remain
+    if (noMoreWordsAvailable) {
+      setGameStatus("noMoreWords");
+      return;
+    }
+
+    // The user wants the next question
+    waitingForNextRef.current = true;
+    setIsLoading(true);
+
+    // A background request is already running.
+    // Wait for it instead of starting another.
+    if (activeRequestRef.current) {
+      return;
+    }
+
+    // Background prefetch failed or wasn't started.
+    // Fetch now without resetting the score.
     const excludedWords = questions.map(
-        (question) => question.word
-      );
+      (question) => question.word
+    );
 
     void loadBatch(
       selectedLevel,
       excludedWords,
       "append"
     );
-
   }
+
 
 
   
@@ -211,6 +314,11 @@ export default function Home() {
     setGameStatus("playing");
     setError(null);
     setIsLoading(false);
+    setIsPrefetching(false);
+    setNoMoreWordsAvailable(false);
+
+    waitingForNextRef.current = false;
+    prefetchAttemptedAtLengthRef.current = null;
   }
 
 
@@ -232,10 +340,12 @@ export default function Home() {
 
       
       {isLoading && (
-        <p role="status" className="text-lg">
-          Generating your German vocabulary questions...
-        </p>
-      )}
+      <p role="status" className="text-center text-sm text-[var(--muted)]">
+        {questions.length === 0
+          ? "Generating your vocabulary questions..."
+          : "Preparing more vocabulary questions..."}
+      </p>
+    )}
 
       
       {error && selectedLevel && (

@@ -96,9 +96,9 @@ describe("QuizBatchSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("rejects more than five questions", () => {
+  it("rejects more than ten questions", () => {
     const batch = {
-      questions: Array.from({ length: 6 }, (_, index) => ({
+      questions: Array.from({ length: 11 }, (_, index) => ({
         ...validQuestion,
         id: `q-${index}`,
       })),
@@ -108,6 +108,21 @@ describe("QuizBatchSchema", () => {
 
     expect(result.success).toBe(false);
   });
+
+  
+  it("accepts a batch of ten questions", () => {
+    const batch = {
+      questions: Array.from({ length: 10 }, (_, index) => ({
+        ...validQuestion,
+        id: `q-${index}`,
+      })),
+    };
+
+    const result = QuizBatchSchema.safeParse(batch);
+
+    expect(result.success).toBe(true);
+  });
+
 
   it("rejects a batch containing an invalid question", () => {
     const batch = {

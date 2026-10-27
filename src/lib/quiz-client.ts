@@ -10,7 +10,7 @@ const ResponseSchema = z.discriminatedUnion("status", [
     status: z.literal("ready"),
     questions: z.array(VocabularyQuestionSchema)
       .min(1)
-      .max(5),
+      .max(10),
   }),
   z.object({
     status: z.literal("noMoreWords"),

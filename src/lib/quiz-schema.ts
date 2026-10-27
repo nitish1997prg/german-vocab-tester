@@ -26,5 +26,5 @@ export const VocabularyQuestionSchema = z.object({
 export const QuizBatchSchema = z.object({
   questions: z.array(VocabularyQuestionSchema)
     .min(1)
-    .max(5),
+    .max(10),
 });

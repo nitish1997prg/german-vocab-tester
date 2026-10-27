@@ -12,7 +12,7 @@ import { filterUniqueQuestions } from "@/lib/quiz-uniqueness";
 
 const validLevels: GermanLevel[] = ["A1", "A2", "B1", "B2"];
 
-const TARGET_BATCH_SIZE = 5;
+const TARGET_BATCH_SIZE = 10;
 const MAX_GENERATION_ATTEMPTS = 3;
 
 export async function POST(request: Request) {
@@ -77,7 +77,7 @@ export async function POST(request: Request) {
       try {
         message = await anthropic.messages.create({
           model: "claude-haiku-4-5",
-          max_tokens: 1800,
+          max_tokens: 3600,
           system: `
     You generate German vocabulary quiz questions.
 
