@@ -83,8 +83,54 @@ describe("POST /api/quiz", () => {
 
  
   
-it("returns valid generated questions", async () => {
-  const words = [
+  it("returns valid generated questions", async () => {
+    const words = [
+      ["der Apfel", "Apple"],
+      ["das Haus", "House"],
+      ["die Katze", "Cat"],
+      ["das Buch", "Book"],
+      ["der Tisch", "Table"],
+      ["der Hund", "Dog"],
+      ["die Schule", "School"],
+      ["das Fenster", "Window"],
+      ["die Blume", "Flower"],
+      ["der Garten", "Garden"],
+    ] as const;
+
+    
+
+    const validQuestions = words.map(
+      ([word, meaning], index) => ({
+        ...validQuestion,
+        id: index + 1, // Numeric IDs from Claude
+        word,
+        options: [
+          meaning,
+          "Mountain",
+          "River",
+          "Sky",
+        ],
+        correctOptionIndex: 0,
+      })
+    );
+
+    mockCreateMessage.mockResolvedValue(
+      mockAIResponse({
+        questions: validQuestions,
+      })
+    );
+
+    const response = await POST(createRequest("A1"));
+
+    expect(response.status).toBe(200);
+
+    const data = await response.json();
+
+    expect(data.status).toBe("ready");
+    expect(data.questions).toHaveLength(10);
+
+    
+  const expectedTranslations = new Map([
     ["der Apfel", "Apple"],
     ["das Haus", "House"],
     ["die Katze", "Cat"],
@@ -95,56 +141,56 @@ it("returns valid generated questions", async () => {
     ["das Fenster", "Window"],
     ["die Blume", "Flower"],
     ["der Garten", "Garden"],
-  ] as const;
+  ]);
 
-  const validQuestions = words.map(
-    ([word, meaning], index) => ({
-      ...validQuestion,
-      id: index + 1, // Numeric IDs from Claude
-      word,
-      options: [
-        meaning,
-        "Mountain",
-        "River",
-        "Sky",
-      ],
-      correctOptionIndex: 0,
-    })
-  );
+  for (const question of data.questions) {
+    // Every question has a unique server-generated ID
+    expect(question.id).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    );
 
-  mockCreateMessage.mockResolvedValue(
-    mockAIResponse({
-      questions: validQuestions,
-    })
-  );
+    // Every question retains four answer options
+    expect(question.options).toHaveLength(4);
 
-  const response = await POST(createRequest("A1"));
+    // Correct translation survives both shuffles
+    expect(
+      question.options[question.correctOptionIndex]
+    ).toBe(expectedTranslations.get(question.word));
+  }
 
-  expect(response.status).toBe(200);
-
-  const data = await response.json();
-
-  expect(data.status).toBe("ready");
-  expect(data.questions).toHaveLength(10);
-
-  const appleQuestion = data.questions.find(
-    (question: { word: string }) =>
-      question.word === "der Apfel"
-  );
-
-  expect(appleQuestion).toBeDefined();
-  expect(appleQuestion.level).toBe("A1");
-
+  // No duplicate IDs
   expect(
-    appleQuestion.options[appleQuestion.correctOptionIndex]
-  ).toBe("Apple");
+    new Set(data.questions.map(
+      (question: { id: string }) => question.id
+    )).size
+  ).toBe(10);
 
-  expect(appleQuestion.id).toMatch(
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-  );
+  // No duplicate vocabulary words
+  expect(
+    new Set(data.questions.map(
+      (question: { word: string }) => question.word
+    )).size
+  ).toBe(10);
 
-  expect(mockCreateMessage).toHaveBeenCalledTimes(1);
-});
+
+    const appleQuestion = data.questions.find(
+      (question: { word: string }) =>
+        question.word === "der Apfel"
+    );
+
+    expect(appleQuestion).toBeDefined();
+    expect(appleQuestion.level).toBe("A1");
+
+    expect(
+      appleQuestion.options[appleQuestion.correctOptionIndex]
+    ).toBe("Apple");
+
+    expect(appleQuestion.id).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    );
+
+    expect(mockCreateMessage).toHaveBeenCalledTimes(1);
+  });
 
 
 
