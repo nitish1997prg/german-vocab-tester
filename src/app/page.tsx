@@ -120,23 +120,41 @@ export default function Home() {
         return;
       }
 
+      
       if (mode === "replace") {
-        setQuestions(data.questions);
+        setQuestions(
+          data.questions.slice(0, MAX_QUESTIONS_PER_GAME)
+        );
+
         setCurrentQuestionIndex(0);
         setSelectedOptionIndex(null);
       } else {
-        // Append newly generated vocabulary
-        setQuestions((previous) => [
-          ...previous,
-          ...data.questions,
-        ]);
+        // Never store more than 20 questions
+        setQuestions((previous) => {
+          const availableSlots = Math.max(
+            0,
+            MAX_QUESTIONS_PER_GAME - previous.length
+          );
 
-        // The player reached the end while we were fetching
+          const newQuestions = data.questions.slice(
+            0,
+            availableSlots
+          );
+
+          return [...previous, ...newQuestions];
+        });
+
+        // Resume if the player reached the last
+        // available question during prefetching
         if (waitingForNextRef.current) {
-          setCurrentQuestionIndex((previous) => previous + 1);
+          setCurrentQuestionIndex(
+            (previous) => previous + 1
+          );
+
           setSelectedOptionIndex(null);
         }
       }
+
 
     } catch (err) {
       if (
