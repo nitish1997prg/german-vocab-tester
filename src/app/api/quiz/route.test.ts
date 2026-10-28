@@ -81,6 +81,7 @@ describe("POST /api/quiz", () => {
     expect(mockCreateMessage).not.toHaveBeenCalled();
   });
 
+ 
   it("returns valid generated questions", async () => {
     mockCreateMessage.mockResolvedValue(
       mockAIResponse({
@@ -88,27 +89,31 @@ describe("POST /api/quiz", () => {
       })
     );
 
-    const response = await POST(
-      createRequest("A1")
-    );
+    const response = await POST(createRequest("A1"));
 
     expect(response.status).toBe(200);
 
     const data = await response.json();
 
-    expect(data).toMatchObject({
-      status: "ready",
-      questions: [
-        {
-          word: "der Apfel",
-          level: "A1",
-          correctOptionIndex: 0,
-        },
-      ],
-    });
+    expect(data.status).toBe("ready");
+    expect(data.questions.length).toBeGreaterThan(0);
+
+    const appleQuestion = data.questions.find(
+      (question: { word: string }) =>
+        question.word === "der Apfel"
+    );
+
+    expect(appleQuestion).toBeDefined();
+    expect(appleQuestion.level).toBe("A1");
+
+    // Check the answer itself, not its position
+    expect(
+      appleQuestion.options[appleQuestion.correctOptionIndex]
+    ).toBe("Apple");
 
     expect(mockCreateMessage).toHaveBeenCalled();
   });
+
 
   
     

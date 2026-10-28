@@ -10,6 +10,9 @@ import { QuizBatchSchema } from "@/lib/quiz-schema";
 //Vocab filter - preserve uniqueness in a batch and across different batches
 import { filterUniqueQuestions } from "@/lib/quiz-uniqueness";
 
+//Fischer-Yates shuffling of options
+import { shuffleQuestionOptions } from "@/lib/quiz-shuffle";
+
 const validLevels: GermanLevel[] = ["A1", "A2", "B1", "B2"];
 
 const TARGET_BATCH_SIZE = 10;
@@ -192,7 +195,9 @@ export async function POST(request: Request) {
     if (questions.length > 0) {
       return NextResponse.json({
         status: "ready",
-        questions,
+        questions: questions.map((question) =>
+                    shuffleQuestionOptions(question)
+                  ),
       });
     }
 
