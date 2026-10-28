@@ -28,3 +28,17 @@ export const QuizBatchSchema = z.object({
     .min(1)
     .max(10),
 });
+
+
+export const GeneratedVocabularyQuestionSchema =
+  VocabularyQuestionSchema.omit({
+    id: true,
+  });
+
+export const GeneratedQuizBatchSchema = z.object({
+  questions: z
+    .array(GeneratedVocabularyQuestionSchema)
+    .min(1)
+    .max(10),
+});
+

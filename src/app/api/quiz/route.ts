@@ -11,7 +11,13 @@ import { QuizBatchSchema } from "@/lib/quiz-schema";
 import { filterUniqueQuestions } from "@/lib/quiz-uniqueness";
 
 //Fischer-Yates shuffling of options
-import { shuffleQuestionOptions } from "@/lib/quiz-shuffle";
+import { shuffleQuestionOptions, shuffleQuestions } from "@/lib/quiz-shuffle";
+
+import {
+  GeneratedQuizBatchSchema,
+} from "@/lib/quiz-schema";
+
+import crypto from 'node:crypto';
 
 const validLevels: GermanLevel[] = ["A1", "A2", "B1", "B2"];
 
@@ -94,13 +100,14 @@ export async function POST(request: Request) {
     - Exactly one option must be correct.
     - Avoid duplicates within the batch.
     - Do not generate excluded words.
-    - Vary the correct answer position.
-    - Include an ID and CEFR level for every question.
+    - Include CEFR level for every question.
 
     Return only a JSON object containing a "questions" array.
 
     Each question must have:
-    id, level, word, options, correctOptionIndex.
+    level, word, options, correctOptionIndex.
+    Do not include an id field.
+    The server will generate question identifiers.
 
     Do not include Markdown.
           `,
@@ -157,7 +164,7 @@ export async function POST(request: Request) {
 
       // Validate the structure with Zod
       const validationResult =
-        QuizBatchSchema.safeParse(generated);
+        GeneratedQuizBatchSchema.safeParse(generated);
 
       if (!validationResult.success) {
         console.error(
@@ -169,35 +176,38 @@ export async function POST(request: Request) {
         continue;
       }
 
+      const generatedQuestions = validationResult.data.questions.map(
+            (question) => ({
+              ...question,
+              id: crypto.randomUUID(),
+            })
+          );
+
       // Remove duplicates and mismatched levels
       const uniqueQuestions = filterUniqueQuestions(
-        validationResult.data.questions,
+        generatedQuestions,
         usedWords,
         level
-      );
-
-      // Collect accepted questions
-      questions.push(
-        ...uniqueQuestions
-          .slice(0, remaining)
-          .map((question) => ({
-            ...question,
-            id: crypto.randomUUID(),
-          }))
       );
 
       console.log(
         `Accepted ${uniqueQuestions.length} unique words`
       );
+
+      // Add accepted questions to the accumulated batch
+      questions.push(...uniqueQuestions.slice(0, remaining));
     }
 
     // Return whatever valid questions we collected
     if (questions.length > 0) {
+      const shuffledQuestions = shuffleQuestions(
+            questions.map((question) =>
+              shuffleQuestionOptions(question)
+            )
+          );
       return NextResponse.json({
         status: "ready",
-        questions: questions.map((question) =>
-                    shuffleQuestionOptions(question)
-                  ),
+        questions: shuffledQuestions
       });
     }
 

@@ -82,37 +82,70 @@ describe("POST /api/quiz", () => {
   });
 
  
-  it("returns valid generated questions", async () => {
-    mockCreateMessage.mockResolvedValue(
-      mockAIResponse({
-        questions: [validQuestion],
-      })
-    );
+  
+it("returns valid generated questions", async () => {
+  const words = [
+    ["der Apfel", "Apple"],
+    ["das Haus", "House"],
+    ["die Katze", "Cat"],
+    ["das Buch", "Book"],
+    ["der Tisch", "Table"],
+    ["der Hund", "Dog"],
+    ["die Schule", "School"],
+    ["das Fenster", "Window"],
+    ["die Blume", "Flower"],
+    ["der Garten", "Garden"],
+  ] as const;
 
-    const response = await POST(createRequest("A1"));
+  const validQuestions = words.map(
+    ([word, meaning], index) => ({
+      ...validQuestion,
+      id: index + 1, // Numeric IDs from Claude
+      word,
+      options: [
+        meaning,
+        "Mountain",
+        "River",
+        "Sky",
+      ],
+      correctOptionIndex: 0,
+    })
+  );
 
-    expect(response.status).toBe(200);
+  mockCreateMessage.mockResolvedValue(
+    mockAIResponse({
+      questions: validQuestions,
+    })
+  );
 
-    const data = await response.json();
+  const response = await POST(createRequest("A1"));
 
-    expect(data.status).toBe("ready");
-    expect(data.questions.length).toBeGreaterThan(0);
+  expect(response.status).toBe(200);
 
-    const appleQuestion = data.questions.find(
-      (question: { word: string }) =>
-        question.word === "der Apfel"
-    );
+  const data = await response.json();
 
-    expect(appleQuestion).toBeDefined();
-    expect(appleQuestion.level).toBe("A1");
+  expect(data.status).toBe("ready");
+  expect(data.questions).toHaveLength(10);
 
-    // Check the answer itself, not its position
-    expect(
-      appleQuestion.options[appleQuestion.correctOptionIndex]
-    ).toBe("Apple");
+  const appleQuestion = data.questions.find(
+    (question: { word: string }) =>
+      question.word === "der Apfel"
+  );
 
-    expect(mockCreateMessage).toHaveBeenCalled();
-  });
+  expect(appleQuestion).toBeDefined();
+  expect(appleQuestion.level).toBe("A1");
+
+  expect(
+    appleQuestion.options[appleQuestion.correctOptionIndex]
+  ).toBe("Apple");
+
+  expect(appleQuestion.id).toMatch(
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+  );
+
+  expect(mockCreateMessage).toHaveBeenCalledTimes(1);
+});
+
 
 
   
@@ -229,6 +262,41 @@ describe("POST /api/quiz", () => {
     expect(response.status).toBe(502);
     expect(mockCreateMessage).toHaveBeenCalledTimes(3);
     });
+
+    
+    it("replaces numeric AI IDs with server-generated UUIDs", async () => {
+      mockCreateMessage.mockResolvedValue(
+        mockAIResponse({
+          questions: [
+            {
+              ...validQuestion,
+              id: 123,
+            },
+          ],
+        })
+      );
+
+      const response = await POST(
+        createRequest("A1")
+      );
+
+      expect(response.status).toBe(200);
+
+      const data = await response.json();
+
+      expect(data.status).toBe("ready");
+      expect(data.questions.length).toBeGreaterThan(0);
+
+      const question = data.questions[0];
+
+      expect(question.word).toBe("der Apfel");
+      expect(question.id).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+      );
+
+      expect(mockCreateMessage).toHaveBeenCalledTimes(3);
+    });
+
 
 });
 

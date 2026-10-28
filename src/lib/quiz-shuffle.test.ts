@@ -1,7 +1,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import { shuffleQuestionOptions } from "./quiz-shuffle";
+import { shuffleQuestionOptions,  shuffleQuestions } from "./quiz-shuffle";
 
 import type {
   VocabularyQuestion,
@@ -83,6 +83,77 @@ describe("shuffleQuestionOptions", () => {
       expect(
         result.options[result.correctOptionIndex]
       ).toBe(input.options[index]);
+    }
+  });
+});
+
+
+
+describe("shuffleQuestions", () => {
+  const questions: VocabularyQuestion[] = [
+    {
+      ...question,
+      id: "q-1",
+      word: "der Apfel",
+    },
+    {
+      ...question,
+      id: "q-2",
+      word: "das Haus",
+    },
+    {
+      ...question,
+      id: "q-3",
+      word: "die Katze",
+    },
+  ];
+
+  it("preserves all questions", () => {
+    const result = shuffleQuestions(
+      questions,
+      () => 0
+    );
+
+    expect(result).toHaveLength(3);
+
+    expect(result.map((q) => q.id).sort()).toEqual(
+      questions.map((q) => q.id).sort()
+    );
+  });
+
+  it("can change question order", () => {
+    const result = shuffleQuestions(
+      questions,
+      () => 0
+    );
+
+    expect(result.map((q) => q.id)).not.toEqual(
+      questions.map((q) => q.id)
+    );
+  });
+
+  it("does not mutate the original array", () => {
+    const originalIds = questions.map((q) => q.id);
+
+    shuffleQuestions(questions, () => 0);
+
+    expect(questions.map((q) => q.id)).toEqual(
+      originalIds
+    );
+  });
+
+  it("preserves each question's answer", () => {
+    const result = shuffleQuestions(
+      questions,
+      () => 0
+    );
+
+    for (const shuffledQuestion of result) {
+      expect(
+        shuffledQuestion.options[
+          shuffledQuestion.correctOptionIndex
+        ]
+      ).toBe("Manager");
     }
   });
 });
