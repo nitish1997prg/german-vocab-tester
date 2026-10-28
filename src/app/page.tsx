@@ -10,9 +10,12 @@ import type { GermanLevel, VocabularyQuestion } from "@/types/quiz";
 import LevelSelector from "@/components/LevelSelector";
 import QuizCard from "@/components/QuizCard";
 import ResultScreen from "@/components/ResultScreen";
+import ChallengeCompleteScreen from "@/components/ChallengeCompleteScreen";
 
 //Utility functions
 import { fetchQuizBatch } from "@/lib/quiz-client";
+
+
 
 type GameStatus =
   | "playing"
@@ -421,6 +424,66 @@ export default function Home() {
 
 
       
+    {selectedLevel !== null &&
+      currentQuestion &&
+      gameStatus === "playing" &&
+      !error && (
+        <section
+          className="w-full space-y-3"
+          aria-label="Quiz progress"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-[var(--muted)]">
+                {selectedLevel} Vocabulary Challenge
+              </p>
+
+              <p className="text-sm font-semibold">
+                Question {Math.min(
+                  currentQuestionIndex + 1,
+                  MAX_QUESTIONS_PER_GAME
+                )} of {MAX_QUESTIONS_PER_GAME}
+              </p>
+            </div>
+
+            <div className="text-right">
+              <p className="text-xs text-[var(--muted)]">
+                Score
+              </p>
+              <p className="text-lg font-bold">
+                {score}
+              </p>
+            </div>
+          </div>
+
+          <div
+            role="progressbar"
+            aria-label="Correct answers"
+            aria-valuenow={score}
+            aria-valuemin={0}
+            aria-valuemax={MAX_QUESTIONS_PER_GAME}
+            className="h-2.5 w-full overflow-hidden rounded-full bg-gray-200"
+          >
+            <div
+              className="h-full rounded-full bg-green-600 transition-all duration-300"
+              style={{
+                width: `${
+                  (score / MAX_QUESTIONS_PER_GAME) * 100
+                }%`,
+              }}
+            />
+          </div>
+
+          <p className="text-center text-xs text-[var(--muted)]">
+            {score} correct ·{" "}
+            {MAX_QUESTIONS_PER_GAME - score} remaining
+          </p>
+        </section>
+      )}
+
+
+
+      
 
       {selectedLevel !== null && currentQuestion && gameStatus === "playing" && !isLoading && !error && (
         <QuizCard
@@ -453,36 +516,18 @@ export default function Home() {
         )}
       
       
+      
       {selectedLevel !== null &&
         gameStatus === "completed" && (
-          <section className="flex flex-col items-center gap-4 text-center">
-            <h2 className="text-2xl font-bold">
-              Challenge Complete!
-            </h2>
-
-            <p className="text-lg">
-              You answered all 20 questions correctly!
-            </p>
-
-            <p className="text-3xl font-bold text-green-600">
-              {score} / {MAX_QUESTIONS_PER_GAME}
-            </p>
-
-            <button
-              onClick={() => startGame(selectedLevel)}
-              className="rounded-lg bg-green-600 px-6 py-3 text-white"
-            >
-              Play Again
-            </button>
-
-            <button
-              onClick={changeLevel}
-              className="rounded-lg border px-6 py-3"
-            >
-              Change Level
-            </button>
-          </section>
+          <ChallengeCompleteScreen
+            level={selectedLevel}
+            score={score}
+            totalQuestions={MAX_QUESTIONS_PER_GAME}
+            onPlayAgain={() => startGame(selectedLevel)}
+            onChangeLevel={changeLevel}
+          />
         )}
+
 
 
 
