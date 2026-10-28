@@ -17,7 +17,9 @@ import { fetchQuizBatch } from "@/lib/quiz-client";
 type GameStatus =
   | "playing"
   | "gameOver"
-  | "noMoreWords";
+  | "noMoreWords" | "completed";
+
+const MAX_QUESTIONS_PER_GAME = 20;
 
 export default function Home() {
   const [selectedLevel, setSelectedLevel] =
@@ -215,7 +217,20 @@ export default function Home() {
       return;
     }
 
-    setScore((previousScore) => previousScore + 1);
+    const nextScore = score + 1;
+
+    setScore(nextScore);
+
+    // The player answered all 20 questions correctly
+    if (nextScore >= MAX_QUESTIONS_PER_GAME) {
+      activeRequestRef.current?.abort();
+      activeRequestRef.current = null;
+      setIsPrefetching(false);
+      waitingForNextRef.current = false;
+
+      setGameStatus("completed");
+      return;
+    }
 
     const remainingQuestions =
       questions.length - (currentQuestionIndex + 1);
@@ -223,7 +238,7 @@ export default function Home() {
     const shouldPrefetch =
       remainingQuestions <= 5 &&
       selectedLevel !== null &&
-      !noMoreWordsAvailable &&
+      !noMoreWordsAvailable && questions.length < MAX_QUESTIONS_PER_GAME &&
       !activeRequestRef.current &&
       prefetchAttemptedAtLengthRef.current !==
         questions.length;
@@ -262,7 +277,14 @@ export default function Home() {
       return;
     }
 
+    
+
     const nextIndex = currentQuestionIndex + 1;
+
+    if (nextIndex >= MAX_QUESTIONS_PER_GAME) {
+      setGameStatus("completed");
+      return;
+    }
 
     // There is already another question available
     if (nextIndex < questions.length) {
@@ -411,6 +433,39 @@ export default function Home() {
             onChangeLevel={changeLevel}
           />
         )}
+      
+      
+      {selectedLevel !== null &&
+        gameStatus === "completed" && (
+          <section className="flex flex-col items-center gap-4 text-center">
+            <h2 className="text-2xl font-bold">
+              Challenge Complete!
+            </h2>
+
+            <p className="text-lg">
+              You answered all 20 questions correctly!
+            </p>
+
+            <p className="text-3xl font-bold text-green-600">
+              {score} / {MAX_QUESTIONS_PER_GAME}
+            </p>
+
+            <button
+              onClick={() => startGame(selectedLevel)}
+              className="rounded-lg bg-green-600 px-6 py-3 text-white"
+            >
+              Play Again
+            </button>
+
+            <button
+              onClick={changeLevel}
+              className="rounded-lg border px-6 py-3"
+            >
+              Change Level
+            </button>
+          </section>
+        )}
+
 
 
       </div>
