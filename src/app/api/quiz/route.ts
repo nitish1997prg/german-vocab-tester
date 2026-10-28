@@ -17,6 +17,8 @@ import {
   GeneratedQuizBatchSchema,
 } from "@/lib/quiz-schema";
 
+import { selectVocabularyThemes } from "@/lib/vocabulary-themes";
+
 import crypto from 'node:crypto';
 
 const validLevels: GermanLevel[] = ["A1", "A2", "B1", "B2"];
@@ -42,6 +44,15 @@ VOCABULARY RULES:
 - Vary vocabulary across everyday life, work,
   education, travel, relationships, and emotions
   when appropriate for the selected level.
+  THEMATIC VARIETY:
+- The user message includes focusThemes.
+- Prefer vocabulary associated with those themes.
+- Select vocabulary appropriate for the requested CEFR level.
+- Include a variety of nouns, verbs, and adjectives.
+- Themes are preferences, not strict restrictions.
+- If a theme cannot provide enough suitable vocabulary,
+  use other appropriate topics to complete the batch.
+- Continue respecting excludedWords.
 
 TRANSLATION ACCURACY:
 - Use a precise, commonly accepted English translation.
@@ -124,6 +135,8 @@ export async function POST(request: Request) {
         `Generation attempt ${attempt}: need ${remaining} words`
       );
 
+      const focusThemes = selectVocabularyThemes(level);
+
       // Generate vocabulary using Claude
       let message;
 
@@ -139,6 +152,7 @@ export async function POST(request: Request) {
                 level,
                 count: remaining,
                 excludedWords: usedWords,
+                focusThemes,
               }),
             },
           ],
