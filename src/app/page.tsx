@@ -377,6 +377,32 @@ export default function Home() {
         German Vocabulary Tester
       </h1>
 
+      
+      {selectedLevel !== null &&
+        gameStatus === "playing" &&
+        !error && !isLoading &&  (
+          <div className="flex w-full justify-end">
+            <button
+              type="button"
+              onClick={changeLevel}
+              className="
+                rounded-lg border border-[var(--border)]
+                px-3 py-2 text-sm font-medium
+                text-[var(--muted)]
+                transition-colors
+                hover:bg-gray-100
+                hover:text-gray-900
+                focus-visible:outline-2
+                focus-visible:outline-offset-2
+                focus-visible:outline-green-700
+              "
+            >
+              Exit Quiz
+            </button>
+          </div>
+        )}
+
+
       {selectedLevel === null && (
         <LevelSelector onSelectLevel={startGame} />
       )}
