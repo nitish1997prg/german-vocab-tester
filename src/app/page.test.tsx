@@ -18,6 +18,8 @@ import {
   screen,
 } from "@testing-library/react";
 
+import { rememberWord } from "@/lib/vocabulary-history";
+
 import Home from "./page";
 
 const { mockFetchQuizBatch } = vi.hoisted(() => ({
@@ -30,6 +32,7 @@ vi.mock("@/lib/quiz-client", () => ({
 
 beforeEach(() => {
   mockFetchQuizBatch.mockReset();
+  localStorage.clear();
 });
 
 afterEach(() => {
@@ -448,9 +451,131 @@ describe("German Vocabulary Gameplay", () => {
     expect(mockFetchQuizBatch).toHaveBeenCalledTimes(1);
   });
 
+  
+  it("includes recent vocabulary history when starting a game", async () => {
+    rememberWord("A1", "der Apfel");
+    rememberWord("A1", "das Haus");
+
+    mockFetchQuizBatch.mockResolvedValueOnce({
+      status: "ready",
+      questions: firstBatch,
+    });
+
+    startA1Game();
+
+    await screen.findByText("das Testwort 1");
+
+    expect(mockFetchQuizBatch).toHaveBeenCalledWith(
+      "A1",
+      ["der Apfel", "das Haus"],
+      expect.any(AbortSignal)
+    );
+
+    expect(mockFetchQuizBatch).toHaveBeenCalledTimes(1);
+  });
 
 
 
+  it("retries without history when Claude returns noMoreWords", async () => {
+    rememberWord("A1", "der Apfel");
+
+    mockFetchQuizBatch
+      .mockResolvedValueOnce({
+        status: "noMoreWords",
+        questions: [],
+      })
+      .mockResolvedValueOnce({
+        status: "ready",
+        questions: firstBatch,
+      });
+
+    startA1Game();
+
+    expect(
+      await screen.findByText("das Testwort 1")
+    ).toBeTruthy();
+
+    expect(mockFetchQuizBatch).toHaveBeenCalledTimes(2);
+
+    // First request excludes previous vocabulary
+    expect(mockFetchQuizBatch).toHaveBeenNthCalledWith(
+      1,
+      "A1",
+      ["der Apfel"],
+      expect.any(AbortSignal)
+    );
+
+    // Retry relaxes historical exclusions
+    expect(mockFetchQuizBatch).toHaveBeenNthCalledWith(
+      2,
+      "A1",
+      [],
+      expect.any(AbortSignal)
+    );
+
+    // The game should start normally
+    expect(
+      screen.queryByRole("heading", {
+        name: /No More Words Available/i,
+      })
+    ).toBeNull();
+  });
+
+
+
+  it("preserves current-game exclusions during fallback", async () => {
+    rememberWord("A1", "der Apfel");
+
+    mockFetchQuizBatch
+      .mockResolvedValueOnce({
+        status: "ready",
+        questions: firstBatch,
+      })
+      .mockResolvedValueOnce({
+        status: "noMoreWords",
+        questions: [],
+      })
+      .mockResolvedValueOnce({
+        status: "ready",
+        questions: secondBatch,
+      });
+
+    startA1Game();
+
+    await screen.findByText("das Testwort 1");
+
+    // Answering question 5 triggers background prefetch
+    answerCorrectlyThrough(5);
+
+    expect(mockFetchQuizBatch).toHaveBeenCalledTimes(2);
+
+    // Allow the fallback request to finish
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(mockFetchQuizBatch).toHaveBeenCalledTimes(3);
+
+    const currentGameWords = firstBatch.map(
+      (question) => question.word
+    );
+
+    // First prefetch request includes historical words
+    expect(mockFetchQuizBatch).toHaveBeenNthCalledWith(
+      2,
+      "A1",
+      [...currentGameWords, "der Apfel"],
+      expect.any(AbortSignal)
+    );
+
+    // Fallback retains all current-game words
+    expect(mockFetchQuizBatch).toHaveBeenNthCalledWith(
+      3,
+      "A1",
+      currentGameWords,
+      expect.any(AbortSignal)
+    );
+  });
 
 });
 

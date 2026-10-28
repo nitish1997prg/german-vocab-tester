@@ -14,6 +14,9 @@ import ChallengeCompleteScreen from "@/components/ChallengeCompleteScreen";
 
 //Utility functions
 import { fetchQuizBatch } from "@/lib/quiz-client";
+import { rememberWord, getRecentWords } from "@/lib/vocabulary-history";
+import { normalizeGermanWord } from "@/lib/quiz-uniqueness";
+
 
 
 
@@ -74,6 +77,28 @@ export default function Home() {
   //Get current question from filtered questions
   const currentQuestion = questions[currentQuestionIndex];
 
+  
+  useEffect(() => {
+    if (
+      selectedLevel === null ||
+      !currentQuestion ||
+      gameStatus !== "playing" ||
+      isLoading ||
+      error
+    ) {
+      return;
+    }
+
+    rememberWord(selectedLevel, currentQuestion.word);
+  }, [
+    selectedLevel,
+    currentQuestion,
+    gameStatus,
+    isLoading,
+    error,
+  ]);
+
+
 
   
   
@@ -98,15 +123,62 @@ export default function Home() {
     setError(null);
 
     try {
-      const data = await fetchQuizBatch(
+
+      
+      const currentGameWords = new Set(
+        excludedWords.map(normalizeGermanWord)
+      );
+
+      // Retrieve recent vocabulary for this CEFR level.
+      // getRecentWords() also handles the 24-hour expiry.
+      const historicalWords = getRecentWords(level).filter(
+        (word) =>
+          !currentGameWords.has(normalizeGermanWord(word))
+      );
+
+      // Prefer fresh vocabulary
+      const combinedExcludedWords = [
+        ...excludedWords,
+        ...historicalWords,
+      ];
+
+      let data = await fetchQuizBatch(
         level,
-        excludedWords,
+        combinedExcludedWords,
         controller.signal
       );
 
-      // Ignore outdated responses
-      if (activeRequestRef.current !== controller) {
+      // Ignore responses from an abandoned game
+      if (
+        activeRequestRef.current !== controller ||
+        controller.signal.aborted
+      ) {
         return;
+      }
+
+      // If historical exclusions are too restrictive,
+      // retry once using only current-game exclusions.
+      if (
+        data.status === "noMoreWords" &&
+        historicalWords.length > 0
+      ) {
+        console.log(
+          "No fresh vocabulary found. Retrying without history."
+        );
+
+        data = await fetchQuizBatch(
+          level,
+          excludedWords,
+          controller.signal
+        );
+
+        // The player might have exited during the retry.
+        if (
+          activeRequestRef.current !== controller ||
+          controller.signal.aborted
+        ) {
+          return;
+        }
       }
 
       if (data.status === "noMoreWords") {
