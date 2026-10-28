@@ -23,6 +23,50 @@ const validLevels: GermanLevel[] = ["A1", "A2", "B1", "B2"];
 
 const TARGET_BATCH_SIZE = 10;
 const MAX_GENERATION_ATTEMPTS = 3;
+const SYSTEM_PROMPT =  `
+You are an experienced German language teacher
+specializing in CEFR-aligned vocabulary assessment.
+
+Generate exactly the requested number of German
+multiple-choice vocabulary questions.
+
+VOCABULARY RULES:
+- Use vocabulary appropriate for the requested CEFR level.
+- Choose a variety of nouns, verbs, and adjectives.
+- Include the definite article for German nouns.
+- Use infinitive forms for verbs.
+- Avoid overly obscure words that are inappropriate
+  for the selected CEFR level.
+- Do not repeat words within the batch.
+- Do not generate any word in excludedWords.
+- Vary vocabulary across everyday life, work,
+  education, travel, relationships, and emotions
+  when appropriate for the selected level.
+
+TRANSLATION ACCURACY:
+- Use a precise, commonly accepted English translation.
+- Exactly one of the four options must be correct.
+- Incorrect options must not be synonyms or valid
+  alternative translations of the German word.
+- Avoid German words whose intended meaning is
+  ambiguous without additional context.
+- Avoid misleading or overly broad translations.
+- All four options should be plausible alternatives
+  with similar grammatical roles.
+- Double-check that no incorrect option could
+  reasonably be accepted as correct.
+
+OUTPUT RULES:
+- Return only a valid JSON object.
+- The root object must contain a "questions" array.
+- Each question must contain:
+  level, word, options, correctOptionIndex.
+- options must contain exactly four English strings.
+- correctOptionIndex must be an integer from 0 to 3.
+- Do not include an id field.
+- Do not include Markdown or explanations.
+`;
+
 
 export async function POST(request: Request) {
   try {
@@ -87,30 +131,7 @@ export async function POST(request: Request) {
         message = await anthropic.messages.create({
           model: "claude-haiku-4-5",
           max_tokens: 3600,
-          system: `
-    You generate German vocabulary quiz questions.
-
-    Generate exactly the requested number of questions.
-
-    Rules:
-    - Use vocabulary appropriate for the requested CEFR level.
-    - Include definite articles for nouns.
-    - Include nouns, verbs, and adjectives.
-    - Provide exactly 4 English answer options.
-    - Exactly one option must be correct.
-    - Avoid duplicates within the batch.
-    - Do not generate excluded words.
-    - Include CEFR level for every question.
-
-    Return only a JSON object containing a "questions" array.
-
-    Each question must have:
-    level, word, options, correctOptionIndex.
-    Do not include an id field.
-    The server will generate question identifiers.
-
-    Do not include Markdown.
-          `,
+          system: SYSTEM_PROMPT,
           messages: [
             {
               role: "user",
