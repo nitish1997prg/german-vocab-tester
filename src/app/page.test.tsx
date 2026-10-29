@@ -577,6 +577,84 @@ describe("German Vocabulary Gameplay", () => {
     );
   });
 
+  it("does not exclude vocabulary after history expires", async () => {
+    const startTime = 1_800_000_000_000;
+    const dateSpy = vi.spyOn(Date, "now");
+
+    try {
+      dateSpy.mockReturnValue(startTime);
+
+      rememberWord("A1", "der Apfel");
+      rememberWord("A1", "das Haus");
+
+      // Move forward by 25 hours
+      dateSpy.mockReturnValue(
+        startTime + 25 * 60 * 60 * 1000
+      );
+
+      mockFetchQuizBatch.mockResolvedValueOnce({
+        status: "ready",
+        questions: firstBatch,
+      });
+
+      startA1Game();
+
+      await screen.findByText("das Testwort 1");
+
+      // Expired words should not be excluded
+      expect(mockFetchQuizBatch).toHaveBeenCalledWith(
+        "A1",
+        [],
+        expect.any(AbortSignal)
+      );
+    } finally {
+      dateSpy.mockRestore();
+    }
+  });
+
+  it("does not retry without historical exclusions", async () => {
+    mockFetchQuizBatch.mockResolvedValueOnce({
+      status: "noMoreWords",
+      questions: [],
+    });
+
+    startA1Game();
+
+    expect(
+      await screen.findByRole("heading", {
+        name: /No More Words Available/i,
+      })
+    ).toBeTruthy();
+
+    // No history means there is nothing to relax
+    expect(mockFetchQuizBatch).toHaveBeenCalledTimes(1);
+  });
+
+  it("stops after one unsuccessful fallback", async () => {
+    rememberWord("A1", "der Apfel");
+
+    mockFetchQuizBatch
+      .mockResolvedValueOnce({
+        status: "noMoreWords",
+        questions: [],
+      })
+      .mockResolvedValueOnce({
+        status: "noMoreWords",
+        questions: [],
+      });
+
+    startA1Game();
+
+    expect(
+      await screen.findByRole("heading", {
+        name: /No More Words Available/i,
+      })
+    ).toBeTruthy();
+
+    expect(mockFetchQuizBatch).toHaveBeenCalledTimes(2);
+  });
+
+
 });
 
 

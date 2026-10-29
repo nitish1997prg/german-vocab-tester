@@ -15,6 +15,7 @@ import {
   rememberWord,
 } from "./vocabulary-history";
 
+
 beforeEach(() => {
   localStorage.clear();
 });
@@ -101,4 +102,39 @@ describe("Vocabulary History", () => {
     dateSpy.mockRestore();
   }
     });
+  
+  
+it("does not extend the 24-hour expiry when new words are added", () => {
+  const startTime = 1_800_000_000_000;
+  const oneHour = 60 * 60 * 1000;
+
+  const dateSpy = vi.spyOn(Date, "now");
+
+  try {
+    dateSpy.mockReturnValue(startTime);
+
+    rememberWord("A1", "der Apfel");
+
+    // Add another word 23 hours later
+    dateSpy.mockReturnValue(
+      startTime + 23 * oneHour
+    );
+
+    rememberWord("A1", "das Haus");
+
+    expect(getRecentWords("A1")).toEqual([
+      "der Apfel",
+      "das Haus",
+    ]);
+
+    // 24 hours after the FIRST word
+    dateSpy.mockReturnValue(
+      startTime + 24 * oneHour
+    );
+
+    expect(getRecentWords("A1")).toEqual([]);
+  } finally {
+    dateSpy.mockRestore();
+  }
+});
 });
