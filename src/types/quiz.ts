@@ -9,4 +9,5 @@ export interface VocabularyQuestion {
   word: string;
   options: [string, string, string, string];
   correctOptionIndex: OptionIndex;
+  explanation?: string;
 }

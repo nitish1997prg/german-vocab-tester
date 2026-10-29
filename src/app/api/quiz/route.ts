@@ -49,6 +49,40 @@ VOCABULARY RULES:
   education, travel, relationships, and emotions
   when appropriate for the selected level.
 
+
+VOCABULARY EXPLANATIONS:
+
+For every generated vocabulary question, include an
+"explanation" field.
+
+Rules:
+- Write the explanation in simple English.
+- Use one short sentence, preferably under 25 words.
+- Explain the meaning or usage of the German word.
+- Clarify distinctions that could make an incorrect
+  translation seem plausible.
+- Keep explanations appropriate for the requested
+  CEFR level.
+- Do not invent etymologies or grammatical rules.
+- Do not simply repeat the correct answer.
+- The explanation must agree with the correct option.
+- Include the explanation in the existing question JSON.
+
+Example:
+
+{
+  "word": "die Voraussetzung",
+  "options": [
+    "The prerequisite",
+    "The experience",
+    "The opportunity",
+    "The relationship"
+  ],
+  "correctOptionIndex": 0,
+  "explanation": "A Voraussetzung is a condition or requirement that must be met before something can happen."
+}
+
+
 THEMATIC VARIETY:
 - The user message includes focusThemes.
 - Prefer vocabulary associated with those themes.

@@ -613,10 +613,19 @@ export default function Home() {
             score={score}
             level={selectedLevel}
             correctAnswer={
-              currentQuestion
-                ? currentQuestion.options[
-                    currentQuestion.correctOptionIndex
-                  ]
+              gameStatus === "gameOver" &&
+              currentQuestion &&
+              selectedOptionIndex !== null
+                ? {
+                    word: currentQuestion.word,
+                    selectedMeaning:
+                      currentQuestion.options[selectedOptionIndex],
+                    correctMeaning:
+                      currentQuestion.options[
+                        currentQuestion.correctOptionIndex
+                      ],
+                    explanation: currentQuestion.explanation,
+                  }
                 : undefined
             }
             onPlayAgain={() => startGame(selectedLevel)}

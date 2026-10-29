@@ -21,6 +21,7 @@ export const VocabularyQuestionSchema = z.object({
     z.literal(2),
     z.literal(3),
   ]),
+  explanation: z.string().trim().min(10).max(240).optional(),
 });
 
 export const QuizBatchSchema = z.object({

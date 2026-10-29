@@ -7,9 +7,14 @@ interface ResultScreenProps {
   status: ResultStatus;
   score: number;
   level: GermanLevel;
-  correctAnswer?: string;
   onPlayAgain: () => void;
   onChangeLevel: () => void;
+  correctAnswer?: {
+  word: string;
+  selectedMeaning: string;
+  correctMeaning: string;
+  explanation?: string;
+  };
 }
 
 export default function ResultScreen({
@@ -67,18 +72,58 @@ export default function ResultScreen({
         </span>
       </div>
 
-      {/* Correct Answer */}
-      {isGameOver && correctAnswer && (
-        <div className="space-y-2">
-          <p className="text-sm text-[var(--muted)]">
-            The correct answer was
+      
+    {/* Correct Answer */}
+    {isGameOver && correctAnswer && (
+      <div className="w-full space-y-4 rounded-2xl border-2 border-[var(--border)] bg-[#F3F8F5] p-5 text-left">
+        <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+          Learn from this question
+        </p>
+
+        {/* German Word */}
+        <h3 className="break-words text-xl font-bold tracking-tight">
+          {correctAnswer.word}
+        </h3>
+
+        {/* Incorrect Answer */}
+        <div className="rounded-xl bg-[#FCE8E6] p-4">
+          <p className="text-xs font-semibold text-red-700">
+            ✕ Your Answer
           </p>
 
-          <p className="text-xl font-semibold text-[var(--primary)]">
-            {correctAnswer}
+          <p className="mt-1 break-words font-medium text-red-900">
+            {correctAnswer.selectedMeaning}
+          </p>
+        </div>
+
+        {/* Correct Answer */}
+        <div className="rounded-xl bg-[#E4F3EC] p-4">
+          <p className="text-xs font-semibold text-green-700">
+            ✓ Correct Answer
+          </p>
+
+          <p className="mt-1 break-words font-semibold text-green-900">
+            {correctAnswer.correctMeaning}
+          </p>
+        </div>
+
+        
+      {/* Vocabulary Explanation */}
+      {correctAnswer.explanation && (
+        <div className="rounded-xl border border-[#CDE7D9] bg-white p-4">
+          <p className="text-xs font-semibold uppercase tracking-wider text-[var(--primary)]">
+            Why this is correct
+          </p>
+
+          <p className="mt-2 break-words text-sm leading-relaxed text-[var(--foreground)]">
+            {correctAnswer.explanation}
           </p>
         </div>
       )}
+
+      </div>
+    )}
+
 
       {/* Actions */}
       <div className="flex w-full flex-col gap-3">
