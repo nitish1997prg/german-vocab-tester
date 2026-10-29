@@ -761,6 +761,47 @@ describe("German Vocabulary Gameplay", () => {
     ).toBeTruthy();
   });
 
+  
+  it("shows the compound word loader while generating questions", async () => {
+    const request = createDeferred<{
+      status: "ready";
+      questions: VocabularyQuestion[];
+    }>();
+
+    mockFetchQuizBatch.mockReturnValueOnce(request.promise);
+
+    startA1Game();
+
+    // Loader appears while Claude's response is pending
+    expect(
+      screen.getByText("Building your vocabulary quiz...")
+    ).toBeTruthy();
+
+    expect(
+      screen.getByText("Wortschatztest")
+    ).toBeTruthy();
+
+    // Resolve the API request
+    await act(async () => {
+      request.resolve({
+        status: "ready",
+        questions: firstBatch,
+      });
+
+      await request.promise;
+    });
+
+    // Quiz should now replace the loader
+    expect(
+      await screen.findByText("das Testwort 1")
+    ).toBeTruthy();
+
+    expect(
+      screen.queryByText("Building your vocabulary quiz...")
+    ).toBeNull();
+  });
+
+
 
 
 });

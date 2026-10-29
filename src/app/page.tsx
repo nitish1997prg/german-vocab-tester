@@ -11,6 +11,7 @@ import LevelSelector from "@/components/LevelSelector";
 import QuizCard from "@/components/QuizCard";
 import ResultScreen from "@/components/ResultScreen";
 import ChallengeCompleteScreen from "@/components/ChallengeCompleteScreen";
+import CompoundWordLoader from "@/components/CompoundWordLoader";
 
 //Utility functions
 import { fetchQuizBatch } from "@/lib/quiz-client";
@@ -487,12 +488,15 @@ export default function Home() {
       )}
 
       
-      {isLoading && (
-      <p role="status" className="text-center text-sm text-[var(--muted)]">
-        {questions.length === 0
-          ? "Generating your vocabulary questions..."
-          : "Preparing more vocabulary questions..."}
-      </p>
+      
+    {isLoading && (
+      <CompoundWordLoader
+        message={
+          questions.length === 0
+            ? "Generating your vocabulary questions..."
+            : "Preparing more vocabulary questions..."
+        }
+      />
     )}
 
       
@@ -635,9 +639,6 @@ export default function Home() {
                           }}
           />
         )}
-
-
-
 
       </div>
 

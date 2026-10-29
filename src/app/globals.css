@@ -121,3 +121,164 @@ body {
   }
 }
 
+
+/* Compound Word Constructor */
+
+@keyframes compound-assembly-cycle {
+  0%, 8% {
+    opacity: 0;
+  }
+
+  16%, 48% {
+    opacity: 1;
+  }
+
+  60%, 100% {
+    opacity: 0;
+  }
+}
+
+@keyframes compound-left-block {
+  0%, 8% {
+    opacity: 0;
+    transform: translateX(-45px) scale(0.9);
+  }
+
+  20%, 36% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+
+  48% {
+    transform: translateX(16px) scale(1.06);
+  }
+
+  54%, 100% {
+    opacity: 1;
+    transform: translateX(16px) scale(1);
+  }
+}
+
+@keyframes compound-middle-block {
+  0%, 8% {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.9);
+  }
+
+  20%, 36% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  48% {
+    transform: scale(1.06);
+  }
+
+  54%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes compound-right-block {
+  0%, 8% {
+    opacity: 0;
+    transform: translateX(45px) scale(0.9);
+  }
+
+  20%, 36% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+
+  48% {
+    transform: translateX(-16px) scale(1.06);
+  }
+
+  54%, 100% {
+    opacity: 1;
+    transform: translateX(-16px) scale(1);
+  }
+}
+
+@keyframes compound-plus-fade {
+  0%, 12% {
+    opacity: 0;
+  }
+
+  20%, 34% {
+    opacity: 1;
+  }
+
+  45%, 100% {
+    opacity: 0;
+  }
+}
+
+@keyframes compound-result-reveal {
+  0%, 54% {
+    opacity: 0;
+    transform: scale(0.88);
+  }
+
+  65% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+
+  72%, 86% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  96%, 100% {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+/* All animations share the same cycle */
+.compound-assembly {
+  animation: compound-assembly-cycle 4.8s ease-in-out infinite both;
+}
+
+.compound-word-block-0 {
+  animation: compound-left-block 4.8s ease-in-out infinite both;
+}
+
+.compound-word-block-1 {
+  animation: compound-middle-block 4.8s ease-in-out infinite both;
+}
+
+.compound-word-block-2 {
+  animation: compound-right-block 4.8s ease-in-out infinite both;
+}
+
+.compound-plus {
+  animation: compound-plus-fade 4.8s ease-in-out infinite both;
+}
+
+.compound-result {
+  animation: compound-result-reveal 4.8s ease-in-out infinite both;
+}
+
+/* Reduced-motion accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .compound-assembly {
+    display: none;
+    animation: none;
+  }
+
+  .compound-result {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+
+  .compound-word-block,
+  .compound-plus {
+    animation: none;
+  }
+}
+
+
