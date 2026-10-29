@@ -27,8 +27,10 @@ export default function ChallengeCompleteScreen({
     >
       <div
         aria-hidden="true"
-        className="flex h-20 w-20 items-center justify-center
-                   rounded-full bg-green-100 text-4xl"
+        className="completion-trophy-animation
+    mx-auto flex h-24 w-24 items-center
+    justify-center rounded-full bg-[#E4F3EC]
+    text-5xl"
       >
         🏆
       </div>
@@ -48,12 +50,11 @@ export default function ChallengeCompleteScreen({
       </div>
 
       <div className="space-y-1">
-        <p className="text-4xl font-bold text-green-700">
+        <p className="completion-score-animation text-4xl font-bold text-[var(--primary)]">
           {score} / {totalQuestions}
         </p>
-
-        <p className="text-sm text-[var(--muted)]">
-          Perfect run — 100% correct!
+        <p className="text-center text-sm font-medium text-[var(--primary)]">
+          Hervorragend! You've completed the {level} challenge!
         </p>
       </div>
 

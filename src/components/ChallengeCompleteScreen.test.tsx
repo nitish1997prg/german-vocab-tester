@@ -42,4 +42,40 @@ describe("ChallengeCompleteScreen", () => {
       })
     ).toBeTruthy();
   });
+  
+  it("renders the 20/20 celebration", () => {
+    const { container } = render(
+      <ChallengeCompleteScreen
+        level="A1"
+        score={20}
+        totalQuestions={20}
+        onPlayAgain={vi.fn()}
+        onChangeLevel={vi.fn()}
+        onTryNextLevel={vi.fn()}
+      />
+    );
+
+    expect(
+      screen.getByText(/Hervorragend!/i)
+    ).toBeTruthy();
+
+    expect(
+      container.querySelector(
+        ".completion-trophy-animation"
+      )
+    ).not.toBeNull();
+
+    expect(
+      container.querySelector(
+        ".completion-score-animation"
+      )
+    ).not.toBeNull();
+
+    expect(
+      screen.getByRole("button", {
+        name: /Try A2 Challenge/i,
+      })
+    ).toBeTruthy();
+  });
+
 });
