@@ -801,6 +801,50 @@ describe("German Vocabulary Gameplay", () => {
     ).toBeNull();
   });
 
+  
+  it("removes the compound loader when questions arrive", async () => {
+    const request = createDeferred<{
+      status: "ready";
+      questions: VocabularyQuestion[];
+    }>();
+
+    mockFetchQuizBatch.mockReturnValueOnce(
+      request.promise
+    );
+
+    startA1Game();
+
+    // Loading state
+    expect(
+      screen.getByText(
+        "Generating your vocabulary questions..."
+      )
+    ).toBeTruthy();
+
+    // Complete the pending API request
+    await act(async () => {
+      request.resolve({
+        status: "ready",
+        questions: firstBatch,
+      });
+
+      await request.promise;
+    });
+
+    // First question is now visible
+    expect(
+      await screen.findByText("das Testwort 1")
+    ).toBeTruthy();
+
+    // Loader has disappeared
+    expect(
+      screen.queryByText(
+        "Generating your vocabulary questions..."
+      )
+    ).toBeNull();
+  });
+
+
 
 
 
@@ -1201,6 +1245,48 @@ describe("Background Prefetching", () => {
     // No additional generation requests
     expect(mockFetchQuizBatch).toHaveBeenCalledTimes(2);
   });
+
+  
+  it("does not show the loader during background prefetch", async () => {
+    const prefetch = createDeferred<{
+      status: "ready";
+      questions: VocabularyQuestion[];
+    }>();
+
+    mockFetchQuizBatch
+      .mockResolvedValueOnce({
+        status: "ready",
+        questions: firstBatch,
+      })
+      .mockReturnValueOnce(prefetch.promise);
+
+    startA1Game();
+
+    await screen.findByText("das Testwort 1");
+
+    // Answering question 5 starts background prefetch
+    answerCorrectlyThrough(5);
+
+    expect(mockFetchQuizBatch).toHaveBeenCalledTimes(2);
+
+    // The learner can continue without the loader
+    expect(
+      screen.queryByText(
+        "Preparing more vocabulary questions..."
+      )
+    ).toBeNull();
+
+    // Resolve the background request
+    await act(async () => {
+      prefetch.resolve({
+        status: "ready",
+        questions: secondBatch,
+      });
+
+      await prefetch.promise;
+    });
+  });
+
 
 
 });
