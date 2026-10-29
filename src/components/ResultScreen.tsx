@@ -15,6 +15,7 @@ interface ResultScreenProps {
   correctMeaning: string;
   explanation?: string;
   };
+  reportHref?: string | null;
 }
 
 export default function ResultScreen({
@@ -24,6 +25,7 @@ export default function ResultScreen({
   correctAnswer,
   onPlayAgain,
   onChangeLevel,
+  reportHref,
 }: ResultScreenProps) {
   const isGameOver = status === "gameOver";
 
@@ -120,6 +122,24 @@ export default function ResultScreen({
           </p>
         </div>
       )}
+
+      
+      {/* Report Question */}
+      {/* {reportHref && (
+        <a
+          href={reportHref}
+          className="block text-center text-sm font-medium
+                    text-[var(--muted)] underline
+                    underline-offset-4
+                    hover:text-[var(--primary)]
+                    focus-visible:outline-2
+                    focus-visible:outline-offset-2
+                    focus-visible:outline-[var(--primary)]"
+        >
+          Report a problem with this question
+        </a>
+      )} */}
+
 
       </div>
     )}

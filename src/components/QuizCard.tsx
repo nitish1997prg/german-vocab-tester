@@ -9,6 +9,7 @@ interface QuizCardProps {
   selectedOptionIndex: number | null;
   onSelectOption: (index: number) => void;
   onNextQuestion: () => void;
+  reportHref?: string | null;
 }
 
 
@@ -47,6 +48,7 @@ export default function QuizCard({
   selectedOptionIndex,
   onSelectOption,
   onNextQuestion,
+  reportHref,
 }: QuizCardProps) {
   const hasAnswered = selectedOptionIndex !== null;
 
@@ -200,6 +202,24 @@ export default function QuizCard({
               Next Question →
             </button>
           )}
+
+          
+          {/* Report Question */}
+          {/* {reportHref && (
+            <a
+              href={reportHref}
+              className="text-center text-sm font-medium
+                        text-[var(--muted)] underline
+                        underline-offset-4
+                        hover:text-[var(--primary)]
+                        focus-visible:outline-2
+                        focus-visible:outline-offset-2
+                        focus-visible:outline-[var(--primary)]"
+            >
+              Report a problem with this question
+            </a>
+          )} */}
+
         </div>
       )}
 

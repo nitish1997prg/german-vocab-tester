@@ -17,6 +17,7 @@ import CompoundWordLoader from "@/components/CompoundWordLoader";
 import { fetchQuizBatch } from "@/lib/quiz-client";
 import { rememberWord, getRecentWords } from "@/lib/vocabulary-history";
 import { normalizeGermanWord } from "@/lib/quiz-uniqueness";
+import { buildQuestionReportMailto } from "@/lib/question-report";
 
 
 
@@ -77,6 +78,17 @@ export default function Home() {
 
   //Get current question from filtered questions
   const currentQuestion = questions[currentQuestionIndex];
+
+  
+  const reportHref =
+  currentQuestion && selectedOptionIndex !== null
+    ? buildQuestionReportMailto(
+        currentQuestion,
+        selectedOptionIndex,
+        process.env.NEXT_PUBLIC_FEEDBACK_EMAIL
+      )
+    : null;
+
 
   
   useEffect(() => {
@@ -601,6 +613,7 @@ export default function Home() {
           selectedOptionIndex={selectedOptionIndex}
           onSelectOption={handleAnswerSelection}
           onNextQuestion={handleNextQuestion}
+          reportHref={reportHref}
         />
       )}
 
@@ -630,6 +643,11 @@ export default function Home() {
             }
             onPlayAgain={() => startGame(selectedLevel)}
             onChangeLevel={changeLevel}
+            reportHref={
+                  gameStatus === "gameOver"
+                    ? reportHref
+                    : null
+                }
           />
         )}
       
