@@ -7,6 +7,7 @@ import type {
 export interface GenerateQuizRequest {
   level: GermanLevel;
   excludedWords: string[];
+  startQuestionNumber?: number;
 }
 
 export type GenerateQuizResponse =

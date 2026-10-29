@@ -18,6 +18,10 @@ import {
 } from "@/lib/quiz-schema";
 
 import { selectVocabularyThemes } from "@/lib/vocabulary-themes";
+import {
+  getQuestionDifficulty,
+  MAX_QUESTIONS_PER_GAME, shuffleQuestionsWithinDifficulty,
+} from "@/lib/quiz-difficulty";
 
 import crypto from 'node:crypto';
 
@@ -44,7 +48,8 @@ VOCABULARY RULES:
 - Vary vocabulary across everyday life, work,
   education, travel, relationships, and emotions
   when appropriate for the selected level.
-  THEMATIC VARIETY:
+
+THEMATIC VARIETY:
 - The user message includes focusThemes.
 - Prefer vocabulary associated with those themes.
 - Select vocabulary appropriate for the requested CEFR level.
@@ -53,6 +58,42 @@ VOCABULARY RULES:
 - If a theme cannot provide enough suitable vocabulary,
   use other appropriate topics to complete the batch.
 - Continue respecting excludedWords.
+
+
+PROGRESSIVE DIFFICULTY:
+
+The user message contains a difficultyPlan array.
+
+Generate exactly one question for each entry in
+difficultyPlan, in the exact order provided.
+
+Interpret the difficulty tiers as follows:
+
+- warmup:
+  Familiar, commonly encountered vocabulary within
+  the selected CEFR level.
+
+- standard:
+  Typical vocabulary appropriate for the selected level.
+
+- hard:
+  Less familiar vocabulary that is still appropriate
+  for the selected CEFR level.
+
+- challenge:
+  More demanding vocabulary near the upper end of
+  the selected CEFR level.
+
+IMPORTANT:
+- Never exceed the requested CEFR level.
+- Difficulty should increase gradually.
+- The challenge tier must not introduce vocabulary
+  that clearly belongs to a higher CEFR level.
+- Keep the returned questions in difficultyPlan order.
+- Preserve all translation accuracy requirements.
+- Return only the existing JSON question structure.
+- Do not add difficulty or id fields to the output.
+
 
 TRANSLATION ACCURACY:
 - Use a precise, commonly accepted English translation.
@@ -83,7 +124,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    const { level, excludedWords } = body;
+    const { level, excludedWords, startQuestionNumber = 1 } = body;
 
     // Validate basic request parameters
     if (
@@ -92,7 +133,9 @@ export async function POST(request: Request) {
       excludedWords.length > 500 ||
       !excludedWords.every(
         (word) => typeof word === "string" && word.length <= 80
-      )
+      ) || !Number.isInteger(startQuestionNumber) ||
+      startQuestionNumber < 1 ||
+      startQuestionNumber > MAX_QUESTIONS_PER_GAME 
     ) {
       return NextResponse.json(
         { error: "Invalid quiz request" },
@@ -113,6 +156,10 @@ export async function POST(request: Request) {
     const questions: VocabularyQuestion[] = [];
 
     let invalidAttempts = 0;
+    const targetBatchSize = Math.min(
+      TARGET_BATCH_SIZE,
+      MAX_QUESTIONS_PER_GAME - startQuestionNumber + 1
+    );
 
     for (
       let attempt = 1;
@@ -120,7 +167,17 @@ export async function POST(request: Request) {
       attempt++
     ) {
       const remaining =
-        TARGET_BATCH_SIZE - questions.length;
+        targetBatchSize - questions.length;
+      
+      
+      const difficultyPlan = Array.from(
+        { length: remaining },
+        (_, index) =>
+          getQuestionDifficulty(
+            startQuestionNumber + questions.length + index
+          )
+      );
+
 
       if (remaining === 0) {
         break;
@@ -153,6 +210,7 @@ export async function POST(request: Request) {
                 count: remaining,
                 excludedWords: usedWords,
                 focusThemes,
+                difficultyPlan,
               }),
             },
           ],
@@ -235,11 +293,13 @@ export async function POST(request: Request) {
 
     // Return whatever valid questions we collected
     if (questions.length > 0) {
-      const shuffledQuestions = shuffleQuestions(
-            questions.map((question) =>
-              shuffleQuestionOptions(question)
-            )
-          );
+     const shuffledQuestions =
+        shuffleQuestionsWithinDifficulty(
+          questions.map((question) =>
+            shuffleQuestionOptions(question)
+          ),
+          startQuestionNumber
+        );
       return NextResponse.json({
         status: "ready",
         questions: shuffledQuestions

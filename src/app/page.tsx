@@ -142,10 +142,16 @@ export default function Home() {
         ...historicalWords,
       ];
 
+      const startQuestionNumber =
+  mode === "replace"
+    ? 1
+    : excludedWords.length + 1;
+
       let data = await fetchQuizBatch(
         level,
         combinedExcludedWords,
-        controller.signal
+        controller.signal,
+        startQuestionNumber
       );
 
       // Ignore responses from an abandoned game
@@ -169,7 +175,8 @@ export default function Home() {
         data = await fetchQuizBatch(
           level,
           excludedWords,
-          controller.signal
+          controller.signal,
+          startQuestionNumber,
         );
 
         // The player might have exited during the retry.

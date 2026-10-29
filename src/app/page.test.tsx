@@ -270,7 +270,8 @@ describe("German Vocabulary Gameplay", () => {
     expect(mockFetchQuizBatch).toHaveBeenLastCalledWith(
         "A1",
         ["der Apfel"],
-        expect.any(AbortSignal)
+        expect.any(AbortSignal),
+        2
     );
 
     // Score remains 1
@@ -468,7 +469,8 @@ describe("German Vocabulary Gameplay", () => {
     expect(mockFetchQuizBatch).toHaveBeenCalledWith(
       "A1",
       ["der Apfel", "das Haus"],
-      expect.any(AbortSignal)
+      expect.any(AbortSignal),
+      1
     );
 
     expect(mockFetchQuizBatch).toHaveBeenCalledTimes(1);
@@ -502,7 +504,8 @@ describe("German Vocabulary Gameplay", () => {
       1,
       "A1",
       ["der Apfel"],
-      expect.any(AbortSignal)
+      expect.any(AbortSignal),
+      1
     );
 
     // Retry relaxes historical exclusions
@@ -510,7 +513,8 @@ describe("German Vocabulary Gameplay", () => {
       2,
       "A1",
       [],
-      expect.any(AbortSignal)
+      expect.any(AbortSignal),
+      1
     );
 
     // The game should start normally
@@ -565,7 +569,8 @@ describe("German Vocabulary Gameplay", () => {
       2,
       "A1",
       [...currentGameWords, "der Apfel"],
-      expect.any(AbortSignal)
+      expect.any(AbortSignal),
+      11
     );
 
     // Fallback retains all current-game words
@@ -573,7 +578,8 @@ describe("German Vocabulary Gameplay", () => {
       3,
       "A1",
       currentGameWords,
-      expect.any(AbortSignal)
+      expect.any(AbortSignal),
+      11
     );
   });
 
@@ -605,7 +611,8 @@ describe("German Vocabulary Gameplay", () => {
       expect(mockFetchQuizBatch).toHaveBeenCalledWith(
         "A1",
         [],
-        expect.any(AbortSignal)
+        expect.any(AbortSignal),
+        1
       );
     } finally {
       dateSpy.mockRestore();

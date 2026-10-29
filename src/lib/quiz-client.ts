@@ -21,7 +21,8 @@ const ResponseSchema = z.discriminatedUnion("status", [
 export async function fetchQuizBatch(
   level: GermanLevel,
   excludedWords: string[],
-  signal: AbortSignal
+  signal: AbortSignal,
+  startQuestionNumber: number = 1
 ): Promise<GenerateQuizResponse> {
   const response = await fetch("/api/quiz", {
     method: "POST",
@@ -31,6 +32,7 @@ export async function fetchQuizBatch(
     body: JSON.stringify({
       level,
       excludedWords,
+      startQuestionNumber,
     }),
     signal,
     cache: "no-store",

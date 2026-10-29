@@ -36,7 +36,8 @@ afterEach(() => {
 
 function createRequest(
   level: string,
-  excludedWords: string[] = []
+  excludedWords: string[] = [],
+  startQuestionNumber: number = 1
 ): Request {
   return new Request("http://localhost:3000/api/quiz", {
     method: "POST",
@@ -46,6 +47,7 @@ function createRequest(
     body: JSON.stringify({
       level,
       excludedWords,
+      startQuestionNumber
     }),
   });
 }
@@ -190,6 +192,20 @@ describe("POST /api/quiz", () => {
     );
 
     expect(mockCreateMessage).toHaveBeenCalledTimes(1);
+
+    // Inspect the request sent to Claude
+    const claudeCall = mockCreateMessage.mock.calls[0][0];
+
+    const userMessage = JSON.parse(
+      claudeCall.messages[0].content
+    );
+
+    // Questions 1–5 should be warm-up
+    // Questions 6–10 should be standard
+    expect(userMessage.difficultyPlan).toEqual([
+      ...Array(5).fill("warmup"),
+      ...Array(5).fill("standard"),
+    ]);
   });
 
 
@@ -252,7 +268,7 @@ describe("POST /api/quiz", () => {
 
 
   
-    it("returns noMoreWords after repeated duplicates", async () => {
+  it("returns noMoreWords after repeated duplicates", async () => {
     mockCreateMessage.mockResolvedValue(
         mockAIResponse({
         questions: [validQuestion],
@@ -342,6 +358,71 @@ describe("POST /api/quiz", () => {
 
       expect(mockCreateMessage).toHaveBeenCalledTimes(3);
     });
+
+      it("generates hard and challenge questions for positions 11–20", async () => {
+       const words = [
+      ["der Apfel", "Apple"],
+      ["das Haus", "House"],
+      ["die Katze", "Cat"],
+      ["das Buch", "Book"],
+      ["der Tisch", "Table"],
+      ["der Hund", "Dog"],
+      ["die Schule", "School"],
+      ["das Fenster", "Window"],
+      ["die Blume", "Flower"],
+      ["der Garten", "Garden"],
+    ] as const;
+
+    const validQuestions = words.map(([word, meaning]) => ({
+      level: "A1",
+      word,
+      options: [
+        meaning,
+        "Mountain",
+        "River",
+        "Sky",
+      ],
+      correctOptionIndex: 0,
+    }));
+
+    mockCreateMessage.mockResolvedValue(
+      mockAIResponse({
+        questions: validQuestions,
+      })
+    );
+
+    // Request questions 11–20
+    const response = await POST(
+      createRequest("A1", [], 11)
+    );
+
+    expect(response.status).toBe(200);
+
+    const data = await response.json();
+
+    expect(data.status).toBe("ready");
+    expect(data.questions).toHaveLength(10);
+
+    // Claude should only be called once
+    expect(mockCreateMessage).toHaveBeenCalledTimes(1);
+
+    // Inspect the request sent to Claude
+    const claudeCall = mockCreateMessage.mock.calls[0][0];
+
+    const userMessage = JSON.parse(
+      claudeCall.messages[0].content
+    );
+
+    // Verify the requested batch size
+    expect(userMessage.count).toBe(10);
+
+    // Questions 11–15 should be hard
+    // Questions 16–20 should be challenge
+    expect(userMessage.difficultyPlan).toEqual([
+      ...Array(5).fill("hard"),
+      ...Array(5).fill("challenge"),
+    ]);
+  });
 
 
 });
