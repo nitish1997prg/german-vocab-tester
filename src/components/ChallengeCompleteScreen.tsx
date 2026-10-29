@@ -1,5 +1,6 @@
 
 import type { GermanLevel } from "@/types/quiz";
+import { getNextLevel } from "@/lib/quiz-levels";
 
 type ChallengeCompleteScreenProps = {
   level: GermanLevel;
@@ -7,6 +8,7 @@ type ChallengeCompleteScreenProps = {
   totalQuestions: number;
   onPlayAgain: () => void;
   onChangeLevel: () => void;
+  onTryNextLevel: (level: GermanLevel) => void;
 };
 
 export default function ChallengeCompleteScreen({
@@ -15,7 +17,9 @@ export default function ChallengeCompleteScreen({
   totalQuestions,
   onPlayAgain,
   onChangeLevel,
+  onTryNextLevel,
 }: ChallengeCompleteScreenProps) {
+  const nextLevel = getNextLevel(level);
   return (
     <section
       aria-labelledby="completion-title"
@@ -62,6 +66,31 @@ export default function ChallengeCompleteScreen({
       </div>
 
       <div className="flex w-full flex-col gap-3">
+        
+        {nextLevel && (
+          <div className="space-y-3 rounded-xl bg-green-50 p-4">
+            <div className="space-y-1">
+              <p className="font-semibold text-green-900">
+                Ready for something harder?
+              </p>
+
+              <p className="text-sm text-green-800">
+                Try the {nextLevel} vocabulary challenge.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => onTryNextLevel(nextLevel)}
+              className="w-full rounded-xl bg-green-700
+                        px-6 py-3 font-semibold text-white
+                        hover:bg-green-800"
+            >
+              Try {nextLevel} Challenge
+            </button>
+          </div>
+        )}
+
         <button
           type="button"
           onClick={onPlayAgain}

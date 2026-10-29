@@ -81,4 +81,46 @@ describe("getQuestionDifficulty", () => {
     );
   });
 
+  
+  it("preserves hard and challenge groups when shuffling the second batch", () => {
+    const questions = Array.from(
+      { length: 10 },
+      (_, index) => ({
+        id: `q-${index + 11}`,
+        level: "B1" as const,
+        word: `Testwort ${index + 11}`,
+        options: [
+          "Answer",
+          "Option B",
+          "Option C",
+          "Option D",
+        ] as [string, string, string, string],
+        correctOptionIndex: 0 as const,
+      })
+    );
+
+    const result = shuffleQuestionsWithinDifficulty(
+      questions,
+      11,
+      () => 0
+    );
+
+    // Q11–15 remain in the hard group
+    expect(
+      result.slice(0, 5).map((q) => q.id).sort()
+    ).toEqual(
+      questions.slice(0, 5).map((q) => q.id).sort()
+    );
+
+    // Q16–20 remain in the challenge group
+    expect(
+      result.slice(5, 10).map((q) => q.id).sort()
+    ).toEqual(
+      questions.slice(5, 10).map((q) => q.id).sort()
+    );
+
+    expect(result).toHaveLength(10);
+  });
+
+
 });

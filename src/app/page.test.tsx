@@ -661,6 +661,107 @@ describe("German Vocabulary Gameplay", () => {
     expect(mockFetchQuizBatch).toHaveBeenCalledTimes(2);
   });
 
+  
+  it("starts an A2 challenge after completing A1", async () => {
+    const a2Question: VocabularyQuestion = {
+      id: "a2-q1",
+      level: "A2",
+      word: "die Einladung",
+      options: [
+        "Invitation",
+        "Mountain",
+        "River",
+        "Sky",
+      ],
+      correctOptionIndex: 0,
+    };
+
+    mockFetchQuizBatch
+      .mockResolvedValueOnce({
+        status: "ready",
+        questions: firstBatch,
+      })
+      .mockResolvedValueOnce({
+        status: "ready",
+        questions: secondBatch,
+      })
+      .mockResolvedValueOnce({
+        status: "ready",
+        questions: [a2Question],
+      });
+
+    startA1Game();
+
+    await screen.findByText("das Testwort 1");
+
+    // Complete the first 10 questions
+    answerCorrectlyThrough(10);
+
+    // Advance to question 11
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /Next Question/i,
+      })
+    );
+
+    await screen.findByText("das Testwort 11");
+
+    // Complete questions 11–20
+    for (let number = 11; number <= 20; number++) {
+      if (number > 11) {
+        fireEvent.click(
+          screen.getByRole("button", {
+            name: /Next Question/i,
+          })
+        );
+      }
+
+      fireEvent.click(
+        screen.getByRole("button", {
+          name: new RegExp(`Meaning ${number}\\b`, "i"),
+        })
+      );
+    }
+
+    expect(
+      screen.getByRole("heading", {
+        name: /Challenge Complete!/i,
+      })
+    ).toBeTruthy();
+
+    // Start the next CEFR level
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /Try A2 Challenge/i,
+      })
+    );
+
+    // A new request must use A2, not A1
+    expect(mockFetchQuizBatch).toHaveBeenLastCalledWith(
+      "A2",
+      expect.any(Array),
+      expect.any(AbortSignal),
+      1
+    );
+
+    // A2 question should appear
+    expect(
+      await screen.findByText("die Einladung")
+    ).toBeTruthy();
+
+    // A2 starts from zero
+    expect(
+      screen.getByRole("progressbar", {
+        name: /Correct answers/i,
+      }).getAttribute("aria-valuenow")
+    ).toBe("0");
+
+    expect(
+      screen.getByText("Question 1 of 20")
+    ).toBeTruthy();
+  });
+
+
 
 });
 

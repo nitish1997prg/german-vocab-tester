@@ -630,6 +630,9 @@ export default function Home() {
             totalQuestions={MAX_QUESTIONS_PER_GAME}
             onPlayAgain={() => startGame(selectedLevel)}
             onChangeLevel={changeLevel}
+            onTryNextLevel={(nextLevel) => {
+                            void startGame(nextLevel);
+                          }}
           />
         )}
 
