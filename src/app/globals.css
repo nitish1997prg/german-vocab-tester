@@ -17,3 +17,59 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+
+@keyframes correct-answer-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+
+  65% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.correct-answer-animation {
+  animation: correct-answer-pop 400ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .correct-answer-animation {
+    animation: none;
+  }
+}
+
+
+@keyframes streak-milestone-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.94);
+  }
+
+  65% {
+    opacity: 1;
+    transform: translateY(-2px) scale(1.03);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.streak-milestone-animation {
+  animation: streak-milestone-pop 550ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .streak-milestone-animation {
+    animation: none;
+  }
+}

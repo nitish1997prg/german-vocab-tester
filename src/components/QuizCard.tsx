@@ -9,6 +9,36 @@ interface QuizCardProps {
   onNextQuestion: () => void;
 }
 
+
+const STREAK_MILESTONES: Record<
+  number,
+  {
+    title: string;
+    message: string;
+    className: string;
+  }
+> = {
+  5: {
+    title: "🔥 5 in a row!",
+    message: "Sehr gut! Keep going!",
+    className:
+      "border-amber-200 bg-amber-50 text-amber-900",
+  },
+  10: {
+    title: "⚡ 10 in a row!",
+    message: "Fantastisch! Halfway there!",
+    className:
+      "border-blue-200 bg-blue-50 text-blue-900",
+  },
+  15: {
+    title: "🏆 15 in a row!",
+    message: "Unglaublich! Just five more!",
+    className:
+      "border-green-200 bg-green-50 text-green-900",
+  },
+};
+
+
 export default function QuizCard({
   question,
   score,
@@ -21,6 +51,10 @@ export default function QuizCard({
   const isCorrect =
     hasAnswered &&
     selectedOptionIndex === question.correctOptionIndex;
+  
+  const streakMilestone = isCorrect
+  ? STREAK_MILESTONES[score]
+  : undefined;
 
   return (
     <section className="flex w-full flex-col gap-6">
@@ -110,17 +144,40 @@ export default function QuizCard({
           aria-live="polite"
           className="flex flex-col gap-4 text-center"
         >
-          <p
-            className={`font-semibold ${
-              isCorrect
-                ? "text-green-700"
-                : "text-red-600"
-            }`}
-          >
-            {isCorrect
-              ? "Correct! +1 point"
-              : "Incorrect!"}
+          
+        <p
+          className={`font-semibold ${
+            isCorrect
+              ? "correct-answer-animation text-green-700"
+              : "text-red-600"
+          }`}
+        >
+          {isCorrect
+            ? "Correct! +1 point"
+            : "Incorrect!"}
+        </p>
+
+        
+      {/* Streak Milestone */}
+      {streakMilestone && (
+        <div
+          className={`
+            streak-milestone-animation
+            rounded-xl border p-4 text-center
+            ${streakMilestone.className}
+          `}
+        >
+          <p className="text-lg font-bold">
+            {streakMilestone.title}
           </p>
+
+          <p className="mt-1 text-sm font-medium">
+            {streakMilestone.message}
+          </p>
+        </div>
+      )}
+
+
 
           {isCorrect && (
             <button
