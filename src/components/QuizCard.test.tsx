@@ -75,4 +75,114 @@ describe("QuizCard streak milestones", () => {
 
     expect(screen.getByText("Incorrect!")).toBeTruthy();
   });
+
+  
+  it("focuses Next Question after a correct answer", () => {
+    const { rerender } = render(
+      <QuizCard
+        question={question}
+        score={0}
+        selectedOptionIndex={null}
+        onSelectOption={vi.fn()}
+        onNextQuestion={vi.fn()}
+      />
+    );
+
+    rerender(
+      <QuizCard
+        question={question}
+        score={1}
+        selectedOptionIndex={0}
+        onSelectOption={vi.fn()}
+        onNextQuestion={vi.fn()}
+      />
+    );
+
+    const nextButton = screen.getByRole("button", {
+      name: /Next Question/i,
+    });
+
+    expect(document.activeElement).toBe(nextButton);
+  });
+
+  
+  it("announces correct answer feedback in a live region", () => {
+    renderQuizCard(1, 0);
+
+    const status = screen.getByRole("status");
+
+    expect(
+      status.getAttribute("aria-live")
+    ).toBe("polite");
+
+    expect(
+      status.getAttribute("aria-atomic")
+    ).toBe("true");
+
+    expect(status.textContent).toContain(
+      "Correct! +1 point"
+    );
+
+    // Interactive controls should not be inside
+    // the live announcement region.
+    expect(
+      status.querySelector("button")
+    ).toBeNull();
+
+    expect(
+      screen.getByRole("button", {
+        name: /Next Question/i,
+      })
+    ).toBeTruthy();
+  });
+
+  it("includes streak achievements in the live region", () => {
+    renderQuizCard(10, 0);
+
+    const status = screen.getByRole("status");
+
+    expect(status.textContent).toContain(
+      "Correct! +1 point"
+    );
+
+    expect(status.textContent).toContain(
+      "10 in a row!"
+    );
+
+    expect(status.textContent).toContain(
+      "Fantastisch! Halfway there!"
+    );
+  });
+
+
+  it("supports long German compound words", () => {
+    const longQuestion: VocabularyQuestion = {
+      ...question,
+      id: "long-word-test",
+      word: "Kraftfahrzeughaftpflichtversicherung",
+    };
+
+    render(
+      <QuizCard
+        question={longQuestion}
+        score={0}
+        selectedOptionIndex={null}
+        onSelectOption={vi.fn()}
+        onNextQuestion={vi.fn()}
+      />
+    );
+
+    const heading = screen.getByRole("heading", {
+      name: "Kraftfahrzeughaftpflichtversicherung",
+    });
+
+    expect(heading).toBeTruthy();
+
+    expect(heading.className).toContain(
+      "[overflow-wrap:anywhere]"
+    );
+  });
+
+
+
 });

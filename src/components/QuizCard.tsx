@@ -1,6 +1,8 @@
 
 import type { VocabularyQuestion } from "@/types/quiz";
 
+import { useEffect, useRef } from "react";
+
 interface QuizCardProps {
   question: VocabularyQuestion;
   score: number;
@@ -51,6 +53,16 @@ export default function QuizCard({
   const isCorrect =
     hasAnswered &&
     selectedOptionIndex === question.correctOptionIndex;
+  
+  
+  const nextButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (isCorrect) {
+      nextButtonRef.current?.focus();
+    }
+  }, [isCorrect]);
+
   
   const streakMilestone = isCorrect
   ? STREAK_MILESTONES[score]
@@ -107,7 +119,7 @@ export default function QuizCard({
               className={`
                 flex min-h-16 w-full items-center gap-4
                 rounded-xl border-2 px-4 py-3
-                text-left transition-colors duration-150
+                text-left motion-safe:transition-colors motion-safe:duration-150
                 focus-visible:outline-2
                 focus-visible:outline-offset-2
                 focus-visible:outline-[var(--primary)]
@@ -123,10 +135,9 @@ export default function QuizCard({
                 {String.fromCharCode(65 + index)}
               </span>
 
-              <span className="min-w-0 flex-1 break-words font-medium">
+              <span className="min-w-0 flex-1 break-words [overflow-wrap:anywhere] font-medium">
                 {option}
               </span>
-
               {isSelected && (
                 <span aria-hidden="true">
                   {isCorrect ? "✓" : "✕"}
@@ -135,61 +146,63 @@ export default function QuizCard({
             </button>
           );
         })}
-      </div>
-
+      </div>      
       {/* Answer Feedback */}
       {hasAnswered && (
-        <div
-          role="status"
-          aria-live="polite"
-          className="flex flex-col gap-4 text-center"
-        >
-          
-        <p
-          className={`font-semibold ${
-            isCorrect
-              ? "correct-answer-animation text-green-700"
-              : "text-red-600"
-          }`}
-        >
-          {isCorrect
-            ? "Correct! +1 point"
-            : "Incorrect!"}
-        </p>
+        <div className="flex flex-col gap-4 text-center">
+          {/* Screen-reader announcement region */}
+          <div
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+            className="flex flex-col gap-4"
+          >
+            <p
+              className={`font-semibold ${
+                isCorrect
+                  ? "correct-answer-animation text-green-700"
+                  : "text-red-600"
+              }`}
+            >
+              {isCorrect
+                ? "Correct! +1 point"
+                : "Incorrect!"}
+            </p>
 
-        
-      {/* Streak Milestone */}
-      {streakMilestone && (
-        <div
-          className={`
-            streak-milestone-animation
-            rounded-xl border p-4 text-center
-            ${streakMilestone.className}
-          `}
-        >
-          <p className="text-lg font-bold">
-            {streakMilestone.title}
-          </p>
+            {/* Streak Milestone */}
+            {streakMilestone && (
+              <div
+                className={`
+                  streak-milestone-animation
+                  rounded-xl border p-4 text-center
+                  ${streakMilestone.className}
+                `}
+              >
+                <p className="text-lg font-bold">
+                  {streakMilestone.title}
+                </p>
 
-          <p className="mt-1 text-sm font-medium">
-            {streakMilestone.message}
-          </p>
-        </div>
-      )}
+                <p className="mt-1 text-sm font-medium">
+                  {streakMilestone.message}
+                </p>
+              </div>
+            )}
+          </div>
 
-
-
+          {/* Interactive controls stay outside live region */}
           {isCorrect && (
             <button
+              ref={nextButtonRef}
               type="button"
               onClick={onNextQuestion}
-              className="w-full rounded-xl bg-[var(--primary)] px-6 py-4 font-semibold text-white transition-colors hover:bg-[#115740] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]"
+              className="w-full rounded-xl bg-[var(--primary)] px-6 py-4 font-semibold text-white motion-safe:transition-colors hover:bg-[#115740] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]"
             >
               Next Question →
             </button>
           )}
         </div>
       )}
+
     </section>
   );
 }
