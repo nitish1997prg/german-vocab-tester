@@ -5,6 +5,18 @@ import type { GermanLevel } from "@/types/quiz";
 import type { GenerateQuizResponse } from "@/types/quiz-api";
 import { VocabularyQuestionSchema } from "@/lib/quiz-schema";
 
+
+export class QuizApiError extends Error {
+  constructor(
+    public readonly status: number,
+    message: string
+  ) {
+    super(message);
+    this.name = "QuizApiError";
+  }
+}
+
+
 const ResponseSchema = z.discriminatedUnion("status", [
   z.object({
     status: z.literal("ready"),
@@ -21,7 +33,7 @@ const ResponseSchema = z.discriminatedUnion("status", [
 export async function fetchQuizBatch(
   level: GermanLevel,
   excludedWords: string[],
-  signal: AbortSignal,
+  signal?: AbortSignal | undefined,
   startQuestionNumber: number = 1
 ): Promise<GenerateQuizResponse> {
   const response = await fetch("/api/quiz", {
@@ -38,9 +50,39 @@ export async function fetchQuizBatch(
     cache: "no-store",
   });
 
+  
   if (!response.ok) {
-    throw new Error(`Quiz API returned ${response.status}`);
+    if (response.status === 429) {
+      throw new QuizApiError(
+        429,
+        "Too many requests. Please wait a minute before trying again."
+      );
+    }
+
+    if (
+      response.status === 502 ||
+      response.status === 503 ||
+      response.status === 504
+    ) {
+      throw new QuizApiError(
+        response.status,
+        "Question generation is temporarily unavailable. Please try again shortly."
+      );
+    }
+
+    if (response.status === 413) {
+      throw new QuizApiError(
+        413,
+        "The question request is too large."
+      );
+    }
+
+    throw new QuizApiError(
+      response.status,
+      "Unable to generate questions. Please try again."
+    );
   }
+
 
   const data: unknown = await response.json();
 

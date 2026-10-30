@@ -26,6 +26,7 @@ import {
 import crypto from 'node:crypto';
 
 const validLevels: GermanLevel[] = ["A1", "A2", "B1", "B2"];
+const MAX_REQUEST_BODY_BYTES = 32 * 1024;
 
 const TARGET_BATCH_SIZE = 10;
 const MAX_GENERATION_ATTEMPTS = 3;
@@ -154,11 +155,72 @@ OUTPUT RULES:
 `;
 
 
+
+async function readLimitedJson(
+  request: Request,
+  maxBytes: number
+): Promise<unknown> {
+  if (!request.body) {
+    throw new SyntaxError("Empty request body");
+  }
+
+  const reader = request.body.getReader();
+  const decoder = new TextDecoder();
+
+  let receivedBytes = 0;
+  let text = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+
+    if (done) break;
+
+    receivedBytes += value.byteLength;
+
+    if (receivedBytes > maxBytes) {
+      await reader.cancel();
+      throw new RangeError("Request body too large");
+    }
+
+    text += decoder.decode(value, {
+      stream: true,
+    });
+  }
+
+  text += decoder.decode();
+
+  return JSON.parse(text);
+}
+
+
+
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    let body: unknown;
 
-    const { level, excludedWords, startQuestionNumber = 1 } = body;
+    try {
+      body = await readLimitedJson(
+        request,
+        MAX_REQUEST_BODY_BYTES
+      );
+    } catch (error) {
+      const tooLarge = error instanceof RangeError;
+
+      return NextResponse.json(
+        {
+          error: tooLarge
+            ? "Request body too large"
+            : "Invalid JSON request body",
+        },
+        { status: tooLarge ? 413 : 400 }
+      );
+    }
+
+    const payload = body as Record<string, unknown>;
+
+    const level = payload.level as GermanLevel;
+    const excludedWords = payload.excludedWords;
+    const startQuestionNumber = (payload.startQuestionNumber ?? 1) as number;
 
     // Validate basic request parameters
     if (
@@ -358,6 +420,47 @@ export async function POST(request: Request) {
 
   } catch (error) {
     console.error("Quiz generation failed:", error);
+
+    
+    if (error instanceof Anthropic.APIError) {
+      console.error("Claude request failed", {
+        status: error.status,
+        name: error.name,
+      });
+
+      if (error.status === 429) {
+        return NextResponse.json(
+          {
+            error: "Question generation is temporarily busy.",
+          },
+          { status: 503 }
+        );
+      }
+
+      if (error.status === 529 || error.status === 503) {
+        return NextResponse.json(
+          {
+            error: "Question generation is temporarily unavailable.",
+          },
+          { status: 503 }
+        );
+      }
+
+      if (error.status === 504) {
+        return NextResponse.json(
+          {
+            error: "Question generation timed out.",
+          },
+          { status: 504 }
+        );
+      }
+
+      return NextResponse.json(
+        { error: "Question generation failed." },
+        { status: 503 }
+      );
+    }
+
 
     return NextResponse.json(
       { error: "Failed to generate vocabulary questions" },

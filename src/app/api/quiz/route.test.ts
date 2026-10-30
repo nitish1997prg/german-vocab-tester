@@ -424,6 +424,94 @@ describe("POST /api/quiz", () => {
     ]);
   });
 
+  
+  it("returns 400 for malformed JSON without calling Claude", async () => {
+    const request = new Request(
+      "http://localhost:3000/api/quiz",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: "{ invalid json",
+      }
+    );
+
+    const response = await POST(request);
+
+    expect(response.status).toBe(400);
+
+    const data = await response.json();
+
+    expect(data.error).toBe(
+      "Invalid JSON request body"
+    );
+
+    expect(mockCreateMessage).not.toHaveBeenCalled();
+  });
+
+  
+  it("returns 413 for oversized request bodies without calling Claude", async () => {
+    const largePayload = JSON.stringify({
+      level: "A1",
+      excludedWords: [
+        "A".repeat(33 * 1024),
+      ],
+      startQuestionNumber: 1,
+    });
+
+    const request = new Request(
+      "http://localhost:3000/api/quiz",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: largePayload,
+      }
+    );
+
+    const response = await POST(request);
+
+    expect(response.status).toBe(413);
+
+    const data = await response.json();
+
+    expect(data.error).toBe(
+      "Request body too large"
+    );
+
+    expect(mockCreateMessage).not.toHaveBeenCalled();
+  });
+
+  
+  it("rejects invalid starting question numbers", async () => {
+    for (const startQuestionNumber of [0, 21, -1, 1.5]) {
+      const request = new Request(
+        "http://localhost:3000/api/quiz",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            level: "A1",
+            excludedWords: [],
+            startQuestionNumber,
+          }),
+        }
+      );
+
+      const response = await POST(request);
+
+      expect(response.status).toBe(400);
+    }
+
+    expect(mockCreateMessage).not.toHaveBeenCalled();
+  });
+
+
+
 
 });
 

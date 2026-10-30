@@ -19,6 +19,7 @@ import {
 } from "@testing-library/react";
 
 import { rememberWord } from "@/lib/vocabulary-history";
+import { QuizApiError } from "@/lib/quiz-client";
 
 import Home from "./page";
 
@@ -26,9 +27,17 @@ const { mockFetchQuizBatch } = vi.hoisted(() => ({
   mockFetchQuizBatch: vi.fn(),
 }));
 
-vi.mock("@/lib/quiz-client", () => ({
-  fetchQuizBatch: mockFetchQuizBatch,
-}));
+vi.mock("@/lib/quiz-client", async (importOriginal) => {
+  const actual =
+    await importOriginal<
+      typeof import("@/lib/quiz-client")
+    >();
+
+  return {
+    ...actual,
+    fetchQuizBatch: mockFetchQuizBatch,
+  };
+});
 
 beforeEach(() => {
   mockFetchQuizBatch.mockReset();
@@ -843,6 +852,49 @@ describe("German Vocabulary Gameplay", () => {
       )
     ).toBeNull();
   });
+
+  
+  it("shows a friendly message when rate limited", async () => {
+    mockFetchQuizBatch.mockRejectedValueOnce(
+      new QuizApiError(
+        429,
+        "Too many requests. Please wait a minute before trying again."
+      )
+    );
+
+    startA1Game();
+
+    expect(
+      await screen.findByText(
+        "Too many requests. Please wait a minute before trying again."
+      )
+    ).toBeTruthy();
+
+    // No automatic retry should occur
+    expect(mockFetchQuizBatch).toHaveBeenCalledTimes(1);
+  });
+
+  
+  it("shows a friendly message when question generation is unavailable", async () => {
+    mockFetchQuizBatch.mockRejectedValueOnce(
+      new QuizApiError(
+        503,
+        "Question generation is temporarily unavailable. Please try again shortly."
+      )
+    );
+
+    startA1Game();
+
+    expect(
+      await screen.findByText(
+        "Question generation is temporarily unavailable. Please try again shortly."
+      )
+    ).toBeTruthy();
+
+    expect(mockFetchQuizBatch).toHaveBeenCalledTimes(1);
+  });
+
+
 
 
 

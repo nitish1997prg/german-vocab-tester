@@ -19,6 +19,8 @@ import { rememberWord, getRecentWords } from "@/lib/vocabulary-history";
 import { normalizeGermanWord } from "@/lib/quiz-uniqueness";
 import { buildQuestionReportMailto } from "@/lib/question-report";
 
+import { QuizApiError } from "@/lib/quiz-client";
+
 
 
 
@@ -263,11 +265,16 @@ export default function Home() {
 
       // Background failures should not interrupt gameplay.
       // Show the error if the learner actually needs more words.
+      
       if (!background || waitingForNextRef.current) {
-        setError(
-          "Unable to load vocabulary questions. Please try again."
-        );
+        const message =
+          err instanceof QuizApiError
+            ? err.message
+            : "Unable to load vocabulary questions. Please try again.";
+
+        setError(message);
       }
+
 
     } finally {
       if (activeRequestRef.current === controller) {
