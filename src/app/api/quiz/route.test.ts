@@ -16,11 +16,22 @@ const { mockCreateMessage } = vi.hoisted(() => ({
 }));
 
 vi.mock("@anthropic-ai/sdk", () => ({
-  default: class MockAnthropic {
-    messages = {
-      create: mockCreateMessage,
-    };
-  },
+  default: Object.assign(
+    class MockAnthropic {
+      messages = {
+        create: mockCreateMessage,
+      };
+    },
+    {
+      APIError: class APIError extends Error {
+        status: number;
+        constructor(status: number, message: string) {
+          super(message);
+          this.status = status;
+        }
+      },
+    }
+  ),
 }));
 
 beforeEach(() => {
@@ -68,9 +79,12 @@ function mockAIResponse(data: unknown) {
         text: JSON.stringify(data),
       },
     ],
+    usage: {
+      input_tokens: 100,
+      output_tokens: 250,
+    },
   };
 }
-
 
 
 describe("POST /api/quiz", () => {
@@ -244,6 +258,7 @@ describe("POST /api/quiz", () => {
         content: [
           { type: "text", text: "{invalid-json" },
         ],
+        usage: { input_tokens: 50, output_tokens: 50 },
       })
       .mockResolvedValueOnce(
         mockAIResponse({
@@ -293,11 +308,11 @@ describe("POST /api/quiz", () => {
 
     it("returns 503 when the AI provider fails", async () => {
     mockCreateMessage.mockRejectedValue(
-        new Error("Service unavailable")
+      new Error("Service unavailable")
     );
 
     const response = await POST(
-        createRequest("A1")
+      createRequest("A1")
     );
 
     expect(response.status).toBe(503);
@@ -305,25 +320,29 @@ describe("POST /api/quiz", () => {
     const data = await response.json();
 
     expect(data).toHaveProperty("error");
-    });
+  });
 
     it("returns 502 after three invalid responses", async () => {
     mockCreateMessage.mockResolvedValue({
-        content: [
+      content: [
         {
-            type: "text",
-            text: "{invalid-json",
+          type: "text",
+          text: "{invalid-json",
         },
-        ],
+      ],
+      usage: {
+        input_tokens: 50,
+        output_tokens: 50,
+      },
     });
 
     const response = await POST(
-        createRequest("A1")
+      createRequest("A1")
     );
 
     expect(response.status).toBe(502);
     expect(mockCreateMessage).toHaveBeenCalledTimes(3);
-    });
+  });
 
     
     it("replaces numeric AI IDs with server-generated UUIDs", async () => {

@@ -292,8 +292,11 @@ export async function POST(request: Request) {
 
       // Generate vocabulary using Claude
       let message;
+      const claudeStartedAt = Date.now();
+
 
       try {
+        
         message = await anthropic.messages.create({
           model: "claude-haiku-4-5",
           max_tokens: 3600,
@@ -311,13 +314,27 @@ export async function POST(request: Request) {
             },
           ],
         });
-      } catch (error) {
-        console.error("AI provider error:", error);
+        
+        console.info("quiz.claude_call", {
+          outcome: "success",
+          level,
+          durationMs: Date.now() - claudeStartedAt,
+          inputTokens: message.usage.input_tokens,
+          outputTokens: message.usage.output_tokens,
+        });
 
-        return NextResponse.json(
-          { error: "AI service temporarily unavailable" },
-          { status: 503 }
-        );
+      } catch (error) {
+        console.error("quiz.claude_call", {
+          outcome: "error",
+          level,
+          durationMs: Date.now() - claudeStartedAt,
+          providerStatus:
+            error instanceof Anthropic.APIError
+              ? error.status
+              : null,
+        });
+
+        throw error;
       }
 
       // Extract text from Claude's response
@@ -421,7 +438,6 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Quiz generation failed:", error);
 
-    
     if (error instanceof Anthropic.APIError) {
       console.error("Claude request failed", {
         status: error.status,
@@ -430,27 +446,21 @@ export async function POST(request: Request) {
 
       if (error.status === 429) {
         return NextResponse.json(
-          {
-            error: "Question generation is temporarily busy.",
-          },
+          { error: "Question generation is temporarily busy." },
           { status: 503 }
         );
       }
 
       if (error.status === 529 || error.status === 503) {
         return NextResponse.json(
-          {
-            error: "Question generation is temporarily unavailable.",
-          },
+          { error: "Question generation is temporarily unavailable." },
           { status: 503 }
         );
       }
 
       if (error.status === 504) {
         return NextResponse.json(
-          {
-            error: "Question generation timed out.",
-          },
+          { error: "Question generation timed out." },
           { status: 504 }
         );
       }
@@ -461,10 +471,10 @@ export async function POST(request: Request) {
       );
     }
 
-
+    // Handle generic errors (like network failures or standard Errors in tests) with 503 if appropriate
     return NextResponse.json(
-      { error: "Failed to generate vocabulary questions" },
-      { status: 502 }
+      { error: "AI service temporarily unavailable" },
+      { status: 503 }
     );
   }
 }
