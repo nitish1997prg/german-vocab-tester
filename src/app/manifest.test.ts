@@ -31,4 +31,27 @@ describe("PWA manifest", () => {
     expect(config.theme_color).toBe("#176B63");
     expect(config.background_color).toBe("#FFFFFF");
   });
+
+  
+  it("includes standard and maskable app icons", () => {
+    const config = manifest();
+
+    expect(config.icons).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          src: "/icons/icon-192.png",
+          sizes: "192x192",
+        }),
+        expect.objectContaining({
+          src: "/icons/icon-512.png",
+          sizes: "512x512",
+        }),
+        expect.objectContaining({
+          src: "/icons/icon-maskable-512.png",
+          purpose: "maskable",
+        }),
+      ])
+    );
+  });
+
 });
