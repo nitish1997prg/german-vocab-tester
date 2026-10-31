@@ -12,11 +12,20 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata = {
+
+export const metadata: Metadata = {
   title: "German Vocabulary Tester",
+
   description:
-    "Test your German vocabulary with AI-generated quizzes. Choose your level from A1 to B2 and challenge yourself!",
+    "Practice German vocabulary from A1 to B2 with AI-generated quizzes and progressive difficulty.",
+
+  applicationName: "German Vocabulary Tester",
+
+  metadataBase: new URL(
+    "https://german-vocab-tester.vercel.app"
+  ),
 };
+
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
