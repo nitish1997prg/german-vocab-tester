@@ -98,6 +98,12 @@ export default function LevelSelector({
       <p className="text-center text-xs text-[var(--muted)]">
         One wrong answer and it&apos;s game over!
       </p>
+       <a
+      href="/privacy"
+      className="text-sm text-gray-500 underline hover:text-[#176B63]"
+    >
+      Privacy Policy
+    </a>
     </section>
   );
 }
