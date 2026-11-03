@@ -12,6 +12,7 @@ import QuizCard from "@/components/QuizCard";
 import ResultScreen from "@/components/ResultScreen";
 import ChallengeCompleteScreen from "@/components/ChallengeCompleteScreen";
 import CompoundWordLoader from "@/components/CompoundWordLoader";
+import ReportQuestion from "@/components/ReportQuestion";
 
 //Utility functions
 import { fetchQuizBatch } from "@/lib/quiz-client";
@@ -624,6 +625,7 @@ export default function Home() {
         />
       )}
 
+
       
       {selectedLevel !== null &&
         (gameStatus === "gameOver" ||
@@ -657,6 +659,19 @@ export default function Home() {
                 }
           />
         )}
+
+        {selectedLevel &&
+          currentQuestion &&
+          !isLoading &&
+          (gameStatus === "playing" ||
+            gameStatus === "gameOver") && (
+            <ReportQuestion
+              key={currentQuestion.id}
+              level={selectedLevel}
+              question={currentQuestion}
+            />
+          )}
+
       
       
       

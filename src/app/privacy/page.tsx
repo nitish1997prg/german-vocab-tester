@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Privacy Policy | German Vocabulary Tester",
@@ -65,7 +66,26 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section>
-          <h2 className="mb-3 text-xl font-semibold">3. Third-Party Services</h2>
+          <h2 className="mb-3 text-xl font-semibold">3. AI-Generated Question Reports</h2>
+          <p className="mb-3">
+            Users can report inappropriate or incorrect AI-generated vocabulary questions within the application.
+          </p>
+          <p className="mb-3">
+            When a report is submitted, we process the selected reason, German learning level, reported question, answer options, and any associated explanation.
+          </p>
+          <p className="mb-3">
+            Reports are stored using Upstash Redis and automatically expire after 30 days. We also use short-lived, pseudonymous network identifiers to limit abusive report submissions.
+          </p>
+          <p className="mb-3">
+            We do not require users to provide their names or email addresses when reporting questions.
+          </p>
+          <p>
+            Reports are reviewed to identify potential problems and improve the quality and safety of generated vocabulary content.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="mb-3 text-xl font-semibold">4. Third-Party Services</h2>
           <p className="mb-2">The application uses:</p>
           <ul className="list-disc pl-6 space-y-1">
             <li>
@@ -75,6 +95,9 @@ export default function PrivacyPolicyPage() {
             <li>
               <strong>Anthropic:</strong> AI-based vocabulary question generation.
             </li>
+            <li>
+              <strong>Upstash:</strong> Serverless Redis storage for short-term rate limiting and question report retention.
+            </li>
           </ul>
           <p className="mt-3">
             These service providers process information as necessary to deliver their respective
@@ -83,7 +106,7 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section>
-          <h2 className="mb-3 text-xl font-semibold">4. Local Storage</h2>
+          <h2 className="mb-3 text-xl font-semibold">5. Local Storage</h2>
           <p className="mb-3">
             The application uses browser <code className="rounded bg-gray-100 px-1">localStorage</code> to remember recently displayed German vocabulary and help avoid repetition.
           </p>
@@ -96,17 +119,17 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section>
-          <h2 className="mb-3 text-xl font-semibold">5. Data Security and Retention</h2>
+          <h2 className="mb-3 text-xl font-semibold">6. Data Security and Retention</h2>
           <p className="mb-3">
             The application uses HTTPS for communication with its website and backend services.
           </p>
           <p>
-            Locally stored vocabulary history expires according to the application&apos;s configured retention logic. Technical logs and information processed by third-party providers may have different retention periods, depending on their configurations and policies.
+            Locally stored vocabulary history expires according to the application&apos;s configured retention logic. Question reports in Upstash Redis expire automatically after 30 days. Technical logs and information processed by third-party providers may have different retention periods, depending on their configurations and policies.
           </p>
         </section>
 
         <section>
-          <h2 className="mb-3 text-xl font-semibold">6. Children&apos;s Privacy</h2>
+          <h2 className="mb-3 text-xl font-semibold">7. Children&apos;s Privacy</h2>
           <p className="mb-3">
             German Vocabulary Tester is a general language-learning application. Its intended age audience will be reflected in the target-audience settings declared on Google Play.
           </p>
@@ -116,7 +139,7 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section>
-          <h2 className="mb-3 text-xl font-semibold">7. Changes to This Policy</h2>
+          <h2 className="mb-3 text-xl font-semibold">8. Changes to This Policy</h2>
           <p className="mb-3">
             This Privacy Policy may be updated when the application&apos;s features, third-party services, or data-processing practices change.
           </p>
@@ -126,7 +149,7 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section>
-          <h2 className="mb-3 text-xl font-semibold">8. Contact</h2>
+          <h2 className="mb-3 text-xl font-semibold">9. Contact</h2>
           <p className="mb-2">
             If you have questions about this Privacy Policy or the application&apos;s data practices, contact:
           </p>
@@ -136,12 +159,12 @@ export default function PrivacyPolicyPage() {
         </section>
       </div>
 
-      <a
+      <Link
         href="/"
         className="mt-8 inline-block text-[#176B63] underline"
       >
         Back to German Vocabulary Tester
-      </a>
+      </Link>
     </main>
   );
 }
