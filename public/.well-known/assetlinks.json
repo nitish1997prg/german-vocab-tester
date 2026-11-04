@@ -8,7 +8,8 @@
       "namespace": "android_app",
       "package_name": "com.germanvocabtester.app",
       "sha256_cert_fingerprints": [
-        "10:56:8A:EB:F4:BB:A4:A8:EF:03:3F:FF:5E:80:AD:00:63:11:CA:18:2D:02:22:A2:5E:23:25:5D:87:8F:EB:70"
+        "10:56:8A:EB:F4:BB:A4:A8:EF:03:3F:FF:5E:80:AD:00:63:11:CA:18:2D:02:22:A2:5E:23:25:5D:87:8F:EB:70",
+        "00:CE:F1:0A:D6:62:10:37:1C:B5:8B:D5:69:67:DE:F4:F6:40:A9:9D:F2:E9:EF:2A:7C:3A:97:5F:F6:D3:85:F6"
       ]
     }
   }
