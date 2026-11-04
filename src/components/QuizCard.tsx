@@ -87,6 +87,7 @@ export default function QuizCard({
     >
       {/* Question and answer options */}
       <BauhausQuestionPanel
+        key={question.id}
         question={question}
         selectedOptionIndex={selectedOptionIndex}
         onSelectOption={(index) => {
@@ -106,7 +107,7 @@ export default function QuizCard({
 
       {/* Answer feedback */}
       {hasAnswered && (
-        <div className="flex flex-col gap-4">
+        <div className="wm-feedback-enter flex flex-col gap-4">
           {/* Screen-reader announcement */}
           <div
             role="status"

@@ -60,7 +60,7 @@ export default function BauhausQuestionPanel({
   return (
     <section
       aria-label="Vocabulary question"
-      className="w-full space-y-4"
+      className="wm-question-enter w-full space-y-4"
     >
       {/* Main vocabulary card */}
       <div
@@ -136,6 +136,14 @@ export default function BauhausQuestionPanel({
 
           const isWrongSelection =
             isSelected && !isCorrectAnswer;
+          
+          
+          const answerAnimation = isCorrectAnswer
+            ? "wm-answer-correct"
+            : isWrongSelection
+              ? "wm-answer-wrong"
+              : "";
+
 
           let buttonStyles = `
             border-[var(--wm-border)]
@@ -182,6 +190,7 @@ export default function BauhausQuestionPanel({
                 disabled:cursor-default
 
                 ${buttonStyles}
+                ${answerAnimation}
               `}
             >
               {/* Option label */}
