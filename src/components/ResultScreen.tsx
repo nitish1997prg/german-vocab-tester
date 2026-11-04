@@ -39,7 +39,7 @@ export default function ResultScreen({
       aria-label="Challenge result"
     >
       {/* Result heading */}
-      <header className="flex flex-col items-center gap-3 py-3 text-center">
+      <header className="wm-result-enter flex flex-col items-center gap-3 py-3 text-center">
         <div
           aria-hidden="true"
           className={`
@@ -75,6 +75,7 @@ export default function ResultScreen({
       {/* Final score */}
       <div
         className="
+          wm-result-enter wm-result-delay-1
           relative flex w-full flex-col
           items-center gap-3 overflow-hidden
           rounded-2xl border
@@ -139,6 +140,7 @@ export default function ResultScreen({
       {isGameOver && correctAnswer && (
         <section
           className="
+            wm-result-enter wm-result-delay-2
             w-full space-y-4 rounded-2xl
             border border-[var(--wm-border)]
             bg-[var(--wm-surface)]
@@ -264,7 +266,7 @@ export default function ResultScreen({
       )}
 
       {/* Actions */}
-      <div className="flex w-full flex-col gap-3">
+      <div className="wm-result-enter wm-result-delay-3 flex w-full flex-col gap-3">
         <button
           type="button"
           onClick={onPlayAgain}

@@ -115,7 +115,16 @@ export default function Home() {
     error,
   ]);
 
-
+  
+  useEffect(() => {
+    if (
+      gameStatus === "gameOver" ||
+      gameStatus === "noMoreWords" ||
+      gameStatus === "completed"
+    ) {
+      window.scrollTo(0, 0);
+    }
+  }, [gameStatus]);
 
   
   

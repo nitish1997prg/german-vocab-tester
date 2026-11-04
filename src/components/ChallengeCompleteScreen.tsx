@@ -31,21 +31,39 @@ export default function ChallengeCompleteScreen({
       className="flex w-full flex-col gap-5"
     >
       {/* Celebration header */}
-      <header className="flex flex-col items-center gap-3 py-4 text-center">
-        <div
-          aria-hidden="true"
-          className="
-            completion-trophy-animation
-            flex h-20 w-20 items-center
-            justify-center rounded-2xl
-            border border-amber-500/30
-            bg-amber-500/10
-            text-5xl
-            motion-reduce:animate-none
-          "
-        >
-          🏆
-        </div>
+      <header className="wm-result-enter flex flex-col items-center gap-3 py-4 text-center">
+        
+    <div className="relative flex items-center justify-center">
+      {/* One-time celebratory halo */}
+      <span
+        aria-hidden="true"
+        className="
+          wm-trophy-halo
+          pointer-events-none
+          absolute -inset-3
+          rounded-3xl
+          border-2 border-amber-400/50
+        "
+      />
+
+      {/* Existing trophy animation */}
+      <div
+        aria-hidden="true"
+        className="
+          completion-trophy-animation
+          relative flex h-20 w-20
+          items-center justify-center
+          rounded-2xl border
+          border-amber-500/30
+          bg-amber-500/10
+          text-5xl
+          motion-reduce:animate-none
+        "
+      >
+        🏆
+      </div>
+    </div>
+
 
         <p
           className={`${mono.className}
@@ -77,6 +95,7 @@ export default function ChallengeCompleteScreen({
       {/* Final score card */}
       <div
         className="
+          wm-result-enter wm-result-delay-1
           relative flex w-full flex-col
           items-center gap-3
           overflow-hidden rounded-2xl
@@ -161,6 +180,7 @@ export default function ChallengeCompleteScreen({
       {/* Achievement message */}
       <div
         className="
+          wm-result-enter wm-result-delay-2
           rounded-2xl border
           border-[var(--wm-border)]
           bg-[var(--wm-surface)]
@@ -182,6 +202,7 @@ export default function ChallengeCompleteScreen({
       {nextLevel ? (
         <div
           className="
+            wm-result-enter wm-result-delay-3
             flex flex-col gap-3
             rounded-2xl border
             border-[var(--wm-border)]
@@ -252,6 +273,7 @@ export default function ChallengeCompleteScreen({
           type="button"
           onClick={onPlayAgain}
           className={`
+            wm-result-enter wm-result-delay-4
             min-h-14 w-full
             rounded-2xl px-6 py-4
             text-sm font-bold
@@ -281,6 +303,7 @@ export default function ChallengeCompleteScreen({
           type="button"
           onClick={onChangeLevel}
           className="
+            wm-result-enter wm-result-delay-4
             min-h-12 w-full
             rounded-xl px-5 py-3
             text-sm font-medium
