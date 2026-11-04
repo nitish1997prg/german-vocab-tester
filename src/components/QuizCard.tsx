@@ -6,6 +6,7 @@ import { useEffect, useRef } from "react";
 import type { VocabularyQuestion } from "@/types/quiz";
 
 import BauhausQuestionPanel from "@/components/quiz/BauhausQuestionPanel";
+
 import { playSound } from "@/lib/sound-effects";
 import { playHaptic } from "@/lib/haptics";
 
@@ -15,9 +16,6 @@ interface QuizCardProps {
   selectedOptionIndex: number | null;
   onSelectOption: (index: number) => void;
   onNextQuestion: () => void;
-
-  // Kept temporarily for compatibility with page.tsx.
-  // In-app reporting is handled by ReportQuestion.
   reportHref?: string | null;
 }
 
@@ -30,26 +28,29 @@ const STREAK_MILESTONES: Record<
   }
 > = {
   5: {
-    title: "🔥 5 in a row!",
+    title: "🔥 5 IN A ROW!",
     message: "Sehr gut! Keep going!",
     className:
-      "border-amber-500/40 bg-amber-500/10 text-amber-300",
+      "border-amber-500/60 bg-[#292217] text-amber-300",
   },
 
   10: {
-    title: "⚡ 10 in a row!",
+    title: "⚡ 10 IN A ROW!",
     message: "Fantastisch! Halfway there!",
     className:
-      "border-blue-500/40 bg-blue-500/10 text-blue-300",
+      "border-blue-500/60 bg-[#192A42] text-blue-300",
   },
 
   15: {
-    title: "🏆 15 in a row!",
+    title: "🏆 15 IN A ROW!",
     message: "Unglaublich! Just five more!",
     className:
-      "border-emerald-500/40 bg-emerald-500/10 text-emerald-300",
+      "border-emerald-500/60 bg-[#15362E] text-emerald-300",
   },
 };
+
+const NORMAL_ADVANCE_DELAY = 900;
+const STREAK_ADVANCE_DELAY = 2100;
 
 export default function QuizCard({
   question,
@@ -64,28 +65,43 @@ export default function QuizCard({
     hasAnswered &&
     selectedOptionIndex === question.correctOptionIndex;
 
-  const nextButtonRef = useRef<HTMLButtonElement>(null);
-
-  // Preserve keyboard accessibility without
-  // automatically scrolling the phone viewport.
-  useEffect(() => {
-    if (isCorrect) {
-      nextButtonRef.current?.focus({
-        preventScroll: true,
-      });
-    }
-  }, [isCorrect]);
-
   const streakMilestone = isCorrect
     ? STREAK_MILESTONES[score]
     : undefined;
 
+  // Keep the latest callback without restarting the timer
+  // whenever the parent component renders.
+  const onNextQuestionRef = useRef(onNextQuestion);
+
+  useEffect(() => {
+    onNextQuestionRef.current = onNextQuestion;
+  }, [onNextQuestion]);
+
+  // Automatically advance after a correct answer.
+  useEffect(() => {
+    if (!isCorrect) {
+      return;
+    }
+
+    const delay = streakMilestone
+      ? STREAK_ADVANCE_DELAY
+      : NORMAL_ADVANCE_DELAY;
+
+    const timer = window.setTimeout(() => {
+      onNextQuestionRef.current();
+    }, delay);
+
+    // Cancel if the question changes or component unmounts.
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [isCorrect, question.id, streakMilestone]);
+
   return (
     <section
-      className="flex w-full flex-col gap-3 sm:gap-5"
       aria-label="Vocabulary challenge"
+      className="flex w-full flex-col gap-3 sm:gap-5"
     >
-      {/* Question and answer options */}
       <BauhausQuestionPanel
         key={question.id}
         question={question}
@@ -99,88 +115,72 @@ export default function QuizCard({
             index === question.correctOptionIndex;
 
           playSound(correct ? "success" : "error");
-          playHaptic(correct ? "success": "error");
+          playHaptic(correct ? "success" : "error");
 
           onSelectOption(index);
         }}
-            />
+      />
 
-      {/* Answer feedback */}
+      {/* Standard feedback — stays compact */}
       {hasAnswered && (
-        <div className="wm-feedback-enter flex flex-col gap-4">
-          {/* Screen-reader announcement */}
+        <div
+          className="wm-feedback-enter"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          <p
+            className={`
+              text-center text-sm font-bold
+              ${
+                isCorrect
+                  ? "correct-answer-animation text-emerald-400"
+                  : "text-rose-400"
+              }
+            `}
+          >
+            {isCorrect
+              ? "✓ Richtig! +1 point"
+              : "✕ Incorrect!"}
+          </p>
+        </div>
+      )}
+
+      {/* Streak popup — does not occupy page space */}
+      {streakMilestone && (
+        <div
+          className="
+            pointer-events-none
+            fixed inset-0 z-50
+            flex items-center justify-center
+            bg-[#0F1117]/70
+            px-5
+          "
+        >
           <div
             role="status"
             aria-live="polite"
-            aria-atomic="true"
-            className="flex flex-col gap-3"
+            className={`
+              wm-streak-popup
+              w-full max-w-xs
+              rounded-3xl border-2
+              p-7 text-center
+              shadow-2xl
+              ${streakMilestone.className}
+            `}
           >
-            <p
-              className={`
-                text-center text-sm font-bold
-                ${
-                  isCorrect
-                    ? "correct-answer-animation text-emerald-400"
-                    : "text-rose-400"
-                }
-              `}
-            >
-              {isCorrect
-                ? "✓ Richtig! +1 point"
-                : "✕ Incorrect!"}
+            <h2 className="text-2xl font-extrabold">
+              {streakMilestone.title}
+            </h2>
+
+            <p className="mt-3 text-sm font-semibold text-gray-100">
+              {streakMilestone.message}
             </p>
 
-            {/* Streak milestone */}
-            {streakMilestone && (
-              <div
-                className={`
-                  streak-milestone-animation
-                  rounded-2xl border p-4
-                  text-center shadow-lg
-                  ${streakMilestone.className}
-                `}
-              >
-                <p className="text-lg font-extrabold">
-                  {streakMilestone.title}
-                </p>
-
-                <p className="mt-1 text-sm font-medium">
-                  {streakMilestone.message}
-                </p>
-              </div>
-            )}
+            <p className="mt-5 text-xs font-medium text-gray-400">
+              Next question coming up...
+            </p>
           </div>
-
-          {/* Next Question */}
-          {isCorrect && (
-            <button
-              ref={nextButtonRef}
-              type="button"
-              onClick={onNextQuestion}
-              className="
-                flex min-h-14 w-full
-                items-center justify-center
-                gap-2 rounded-2xl
-                bg-gradient-to-r
-                from-amber-500 to-amber-600
-                px-6 py-4
-                text-sm font-extrabold
-                tracking-wide text-[#0F1117]
-                shadow-[0_8px_30px_-10px_rgba(245,158,11,0.45)]
-                transition-[filter,transform]
-                duration-200
-                hover:brightness-110
-                motion-safe:active:scale-[0.98]
-                motion-reduce:transition-none
-                focus-visible:outline-2
-                focus-visible:outline-offset-2
-                focus-visible:outline-amber-400
-              "
-            >
-              Next Question
-              <span aria-hidden="true">→</span>
-            </button>
-          )}
         </div>
       )}
     </section>

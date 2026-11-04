@@ -456,3 +456,38 @@ body {
     opacity: 0;
   }
 }
+
+
+/* 9.7B — Streak celebration overlay */
+
+@keyframes wm-streak-popup {
+  0% {
+    opacity: 0;
+    transform: translateY(16px) scale(0.92);
+  }
+
+  15% {
+    opacity: 1;
+    transform: translateY(0) scale(1.04);
+  }
+
+  25%, 80% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+}
+
+.wm-streak-popup {
+  animation: wm-streak-popup 2000ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wm-streak-popup {
+    animation: none;
+  }
+}
