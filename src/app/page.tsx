@@ -15,6 +15,7 @@ import CompoundWordLoader from "@/components/CompoundWordLoader";
 import ReportQuestion from "@/components/ReportQuestion";
 import BauhausHomeShell from "@/components/home/BauhausHomeShell";
 import HomeScreen from "@/components/home/HomeScreen";
+import BauhausQuizProgress from "@/components/quiz/BauhausQuizProgress";
 
 //Utility functions
 import { fetchQuizBatch } from "@/lib/quiz-client";
@@ -471,17 +472,35 @@ export default function Home() {
     return (
       <HomeScreen onSelectLevel={startGame} />
     );
-  } 
+  }
+  
+  const isQuizScreen = gameStatus === "playing";
 
 
 
   return (
-    <main className="flex min-h-dvh items-center justify-center px-3 py-6 sm:px-6 sm:py-10">
-       <div className=" flex w-full min-w-0 max-w-md flex-col
-        items-center gap-6 rounded-3xl
-        border border-[var(--border)]
-        bg-[var(--surface)]
-        p-5 shadow-sm sm:p-8">
+    <main className={
+    isQuizScreen
+      ? "min-h-dvh bg-[var(--wm-canvas)] text-[var(--wm-text)]"
+      : "flex min-h-dvh items-center justify-center px-3 py-6 sm:px-6 sm:py-10"
+  }>
+    <div className={
+      isQuizScreen
+        ? `
+          mx-auto flex w-full min-w-0
+          max-w-md flex-col gap-5
+          px-4 py-6 pb-8
+          sm:px-5 sm:py-8
+        `
+        : `
+          flex w-full min-w-0 max-w-md
+          flex-col items-center gap-6
+          rounded-3xl border
+          border-[var(--border)]
+          bg-[var(--surface)]
+          p-5 shadow-sm sm:p-8
+        `
+    }>
 
       
       {selectedLevel !== null &&
@@ -552,62 +571,21 @@ export default function Home() {
 
 
       
-    {selectedLevel !== null &&
-      currentQuestion &&
-      gameStatus === "playing" &&
-      !error && (
-        <section
-          className="w-full space-y-3"
-          aria-label="Quiz progress"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs text-[var(--muted)]">
-                {selectedLevel} Vocabulary Challenge
-              </p>
+    
+      {selectedLevel !== null &&
+        currentQuestion &&
+        gameStatus === "playing" &&
+        !isLoading &&
+        !error && (
+          <BauhausQuizProgress
+            level={selectedLevel}
+            questionNumber={currentQuestionIndex + 1}
+            score={score}
+            totalQuestions={MAX_QUESTIONS_PER_GAME}
+            onExit={changeLevel}
+          />
+        )}
 
-              <p className="text-sm font-semibold">
-                Question {Math.min(
-                  currentQuestionIndex + 1,
-                  MAX_QUESTIONS_PER_GAME
-                )} of {MAX_QUESTIONS_PER_GAME}
-              </p>
-            </div>
-
-            <div className="text-right">
-              <p className="text-xs text-[var(--muted)]">
-                Score
-              </p>
-              <p className="text-lg font-bold">
-                {score}
-              </p>
-            </div>
-          </div>
-
-          <div
-            role="progressbar"
-            aria-label="Correct answers"
-            aria-valuenow={score}
-            aria-valuemin={0}
-            aria-valuemax={MAX_QUESTIONS_PER_GAME}
-            className="h-2.5 w-full overflow-hidden rounded-full bg-gray-200"
-          >
-            <div
-              className="h-full rounded-full bg-green-600 transition-all duration-300"
-              style={{
-                width: `${
-                  (score / MAX_QUESTIONS_PER_GAME) * 100
-                }%`,
-              }}
-            />
-          </div>
-
-          <p className="text-center text-xs text-[var(--muted)]">
-            {score} correct ·{" "}
-            {MAX_QUESTIONS_PER_GAME - score} remaining
-          </p>
-        </section>
-      )}
 
 
 
