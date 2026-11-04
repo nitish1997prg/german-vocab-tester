@@ -474,18 +474,18 @@ export default function Home() {
     );
   }
   
-  const isQuizScreen = gameStatus === "playing";
+  const isBauhausScreen = gameStatus === "playing" || gameStatus === "gameOver" || gameStatus === "noMoreWords";
 
 
 
   return (
     <main className={
-    isQuizScreen
+    isBauhausScreen
       ? "min-h-dvh bg-[var(--wm-canvas)] text-[var(--wm-text)]"
       : "flex min-h-dvh items-center justify-center px-3 py-6 sm:px-6 sm:py-10"
   }>
     <div className={
-      isQuizScreen
+      isBauhausScreen
         ? `
           mx-auto flex w-full min-w-0
           max-w-md flex-col gap-5
