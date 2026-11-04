@@ -5,6 +5,7 @@ import { useSyncExternalStore } from "react";
 import { mono } from "@/lib/fonts";
 
 import SoundToggle from "./SoundToggle";
+import HapticToggle from "./HapticToggle";
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -71,6 +72,7 @@ export default function BauhausHeader() {
           20 QUESTIONS
         </span>
         <SoundToggle />
+        <HapticToggle />
       </div>
 
       {/* Branding */}

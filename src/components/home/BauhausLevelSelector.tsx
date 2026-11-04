@@ -7,6 +7,7 @@ import type { GermanLevel } from "@/types/quiz";
 import { mono } from "@/lib/fonts";
 
 import { playSound } from "@/lib/sound-effects";
+import { playHaptic } from "@/lib/haptics";
 
 type Props = {
   onSelectLevel: (
@@ -61,6 +62,8 @@ export default function BauhausLevelSelector({
 
   function handleStartChallenge() {
     playSound("tap");
+    playHaptic("tap");
+
     void onSelectLevel(selectedLevel);
   }
 
@@ -103,6 +106,7 @@ export default function BauhausLevelSelector({
               onClick={() => {
                 setSelectedLevel(level.id);
                 playSound("tap");
+                playHaptic("tap");
               }}
               className={`
                 relative flex min-h-[158px] min-w-0

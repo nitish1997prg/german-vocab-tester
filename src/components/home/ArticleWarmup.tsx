@@ -4,6 +4,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { mono } from "@/lib/fonts";
+import { playHaptic } from "@/lib/haptics";
 
 import {
   WARMUP_WORDS,
@@ -86,6 +87,7 @@ export default function ArticleWarmup() {
     );
 
     playSound(correct ? "success" : "error");
+    playHaptic(correct ? "success" : "error");
 
     setSelectedArticle(article);
 

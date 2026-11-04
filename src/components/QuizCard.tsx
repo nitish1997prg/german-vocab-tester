@@ -7,6 +7,7 @@ import type { VocabularyQuestion } from "@/types/quiz";
 
 import BauhausQuestionPanel from "@/components/quiz/BauhausQuestionPanel";
 import { playSound } from "@/lib/sound-effects";
+import { playHaptic } from "@/lib/haptics";
 
 interface QuizCardProps {
   question: VocabularyQuestion;
@@ -97,6 +98,7 @@ export default function QuizCard({
             index === question.correctOptionIndex;
 
           playSound(correct ? "success" : "error");
+          playHaptic(correct ? "success": "error");
 
           onSelectOption(index);
         }}
