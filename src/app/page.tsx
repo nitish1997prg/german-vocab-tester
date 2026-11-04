@@ -13,6 +13,8 @@ import ResultScreen from "@/components/ResultScreen";
 import ChallengeCompleteScreen from "@/components/ChallengeCompleteScreen";
 import CompoundWordLoader from "@/components/CompoundWordLoader";
 import ReportQuestion from "@/components/ReportQuestion";
+import BauhausHomeShell from "@/components/home/BauhausHomeShell";
+import HomeScreen from "@/components/home/HomeScreen";
 
 //Utility functions
 import { fetchQuizBatch } from "@/lib/quiz-client";
@@ -465,6 +467,13 @@ export default function Home() {
   }
 
 
+  if (selectedLevel === null) {
+    return (
+      <HomeScreen onSelectLevel={startGame} />
+    );
+  } 
+
+
 
   return (
     <main className="flex min-h-dvh items-center justify-center px-3 py-6 sm:px-6 sm:py-10">
@@ -473,9 +482,6 @@ export default function Home() {
         border border-[var(--border)]
         bg-[var(--surface)]
         p-5 shadow-sm sm:p-8">
-      <h1 className="text-center text-3xl font-bold tracking-tight">
-        German Vocabulary Tester
-      </h1>
 
       
       {selectedLevel !== null &&
@@ -500,14 +506,7 @@ export default function Home() {
               Exit Quiz
             </button>
           </div>
-        )}
-
-
-      {selectedLevel === null && (
-        <LevelSelector onSelectLevel={startGame} />
-      )}
-
-      
+        )}      
       
     {isLoading && (
       <CompoundWordLoader

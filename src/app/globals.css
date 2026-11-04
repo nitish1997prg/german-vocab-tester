@@ -282,3 +282,28 @@ body {
 }
 
 
+/* Milestone 9 — Bauhaus Slate theme tokens */
+
+:root {
+  --wm-canvas: #0f1117;
+  --wm-surface: #181b25;
+  --wm-surface-raised: #1f2432;
+  --wm-surface-hover: #272d3e;
+  --wm-border: #2a2f3d;
+
+  --wm-text: #f3f4f6;
+  --wm-muted: #9ca3af;
+
+  --wm-amber: #f59e0b;
+  --wm-amber-light: #fbbf24;
+
+  --wm-green: #10b981;
+  --wm-red: #fb7185;
+
+  --wm-der: #3b82f6;
+  --wm-die: #ec4899;
+  --wm-das: #f59e0b;
+}
+
+
+
