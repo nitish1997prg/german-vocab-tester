@@ -31,7 +31,7 @@ export default function BauhausQuizProgress({
 
   return (
     <section
-      className="w-full space-y-5"
+      className="w-full space-y-3 sm:space-y-5"
       aria-label="Quiz progress"
     >
       {/* Top bar */}

@@ -495,8 +495,9 @@ export default function Home() {
       isBauhausScreen
         ? `
           mx-auto flex w-full min-w-0
-          max-w-md flex-col gap-5
-          px-4 py-6 pb-8
+          max-w-md flex-col
+          gap-3 sm:gap-5
+          px-4 pt-3 pb-5
           sm:px-5 sm:py-8
         `
         : `

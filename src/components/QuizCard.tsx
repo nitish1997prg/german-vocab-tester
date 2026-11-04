@@ -82,7 +82,7 @@ export default function QuizCard({
 
   return (
     <section
-      className="flex w-full flex-col gap-5"
+      className="flex w-full flex-col gap-3 sm:gap-5"
       aria-label="Vocabulary challenge"
     >
       {/* Question and answer options */}

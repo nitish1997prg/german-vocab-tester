@@ -60,7 +60,7 @@ export default function BauhausQuestionPanel({
   return (
     <section
       aria-label="Vocabulary question"
-      className="wm-question-enter w-full space-y-4"
+      className="wm-question-enter w-full space-y-3 sm:space-y-4"
     >
       {/* Main vocabulary card */}
       <div
@@ -68,7 +68,7 @@ export default function BauhausQuestionPanel({
           rounded-2xl border
           border-[var(--wm-border)]
           bg-[var(--wm-surface)]
-          px-4 py-5
+          px-4 py-3 sm:py-5
           shadow-[0_12px_35px_-20px_rgba(0,0,0,0.6)]
         "
       >
@@ -100,7 +100,7 @@ export default function BauhausQuestionPanel({
 
         <h2
           className="
-            mt-5 break-words text-center
+            mt-3 sm:mt-5 break-words text-center
             text-[clamp(1.5rem,7vw,2rem)]
             font-extrabold leading-tight
             tracking-tight text-white
@@ -112,7 +112,7 @@ export default function BauhausQuestionPanel({
 
         <p
           className="
-            mt-4 text-center
+            mt-2 sm:mt-4 text-center
             text-xs text-gray-400
           "
         >
@@ -124,7 +124,7 @@ export default function BauhausQuestionPanel({
       <div
         role="group"
         aria-label="Answer choices"
-        className="grid gap-3"
+        className="grid gap-2 sm:gap-3"
       >
         {question.options.map((option, index) => {
           const isSelected =
@@ -173,10 +173,12 @@ export default function BauhausQuestionPanel({
                 void onSelectOption(index);
               }}
               className={`
-                flex min-h-14 w-full
-                items-center gap-3
+                
+                flex min-h-12 w-full
+                items-center gap-2 sm:gap-3
                 rounded-xl border
-                px-3 py-3 text-left
+                px-3 py-2 sm:py-3 text-left
+                sm:min-h-14
                 transition-[background-color,border-color,transform]
                 duration-200
 
@@ -197,7 +199,7 @@ export default function BauhausQuestionPanel({
               <span
                 className={`
                   ${mono.className}
-                  flex h-9 w-9
+                  flex h-8 w-8 sm:h-9 sm:w-9
                   shrink-0 items-center
                   justify-center
                   rounded-lg
