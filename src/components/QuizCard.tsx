@@ -1,7 +1,11 @@
 
-import type { VocabularyQuestion } from "@/types/quiz";
+"use client";
 
 import { useEffect, useRef } from "react";
+
+import type { VocabularyQuestion } from "@/types/quiz";
+
+import BauhausQuestionPanel from "@/components/quiz/BauhausQuestionPanel";
 
 interface QuizCardProps {
   question: VocabularyQuestion;
@@ -9,9 +13,11 @@ interface QuizCardProps {
   selectedOptionIndex: number | null;
   onSelectOption: (index: number) => void;
   onNextQuestion: () => void;
+
+  // Kept temporarily for compatibility with page.tsx.
+  // In-app reporting is handled by ReportQuestion.
   reportHref?: string | null;
 }
-
 
 const STREAK_MILESTONES: Record<
   number,
@@ -25,22 +31,23 @@ const STREAK_MILESTONES: Record<
     title: "🔥 5 in a row!",
     message: "Sehr gut! Keep going!",
     className:
-      "border-amber-200 bg-amber-50 text-amber-900",
+      "border-amber-500/40 bg-amber-500/10 text-amber-300",
   },
+
   10: {
     title: "⚡ 10 in a row!",
     message: "Fantastisch! Halfway there!",
     className:
-      "border-blue-200 bg-blue-50 text-blue-900",
+      "border-blue-500/40 bg-blue-500/10 text-blue-300",
   },
+
   15: {
     title: "🏆 15 in a row!",
     message: "Unglaublich! Just five more!",
     className:
-      "border-green-200 bg-green-50 text-green-900",
+      "border-emerald-500/40 bg-emerald-500/10 text-emerald-300",
   },
 };
-
 
 export default function QuizCard({
   question,
@@ -48,139 +55,77 @@ export default function QuizCard({
   selectedOptionIndex,
   onSelectOption,
   onNextQuestion,
-  reportHref,
 }: QuizCardProps) {
   const hasAnswered = selectedOptionIndex !== null;
 
   const isCorrect =
     hasAnswered &&
     selectedOptionIndex === question.correctOptionIndex;
-  
-  
+
   const nextButtonRef = useRef<HTMLButtonElement>(null);
 
+  // Preserve keyboard accessibility without
+  // automatically scrolling the phone viewport.
   useEffect(() => {
     if (isCorrect) {
-      nextButtonRef.current?.focus();
+      nextButtonRef.current?.focus({
+        preventScroll: true,
+      });
     }
   }, [isCorrect]);
 
-  
   const streakMilestone = isCorrect
-  ? STREAK_MILESTONES[score]
-  : undefined;
+    ? STREAK_MILESTONES[score]
+    : undefined;
 
   return (
-    <section className="flex w-full flex-col gap-6">
-      {/* Level and Score */}
-      <div className="flex w-full flex-wrap items-center justify-between gap-3">
-        <span className="rounded-full bg-[#E4F3EC] px-4 py-2 text-sm font-semibold text-[var(--primary)]">
-          {question.level} Vocabulary
-        </span>
+    <section
+      className="flex w-full flex-col gap-5"
+      aria-label="Vocabulary challenge"
+    >
+      {/* Question and answer options */}
+      <BauhausQuestionPanel
+        question={question}
+        selectedOptionIndex={selectedOptionIndex}
+        onSelectOption={onSelectOption}
+      />
 
-        <div className="rounded-xl bg-[#E4F3EC] px-4 py-2">
-          <span className="text-sm font-semibold text-[var(--primary)]">
-            🏆 {score}
-          </span>
-        </div>
-      </div>
-
-      {/* German Word */}
-      <div className="flex min-h-48 flex-col items-center justify-center gap-4 rounded-2xl bg-[#F3F8F5] p-6 text-center">
-        <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
-          What does this word mean?
-        </p>
-
-        <h2 className="w-full min-w-0
-                      text-center text-2xl font-bold
-                      tracking-tight sm:text-3xl
-                      [overflow-wrap:anywhere]">
-          {question.word}
-        </h2>
-
-        <p className="text-sm text-[var(--muted)]">
-          Choose the correct English translation
-        </p>
-      </div>
-
-      {/* Answer Options */}
-      <div className="flex flex-col gap-3">
-        {question.options.map((option, index) => {
-          const isSelected = selectedOptionIndex === index;
-
-          const selectedStyles = isCorrect
-            ? "border-green-600 bg-green-50 text-green-900"
-            : "border-red-600 bg-red-50 text-red-900";
-
-          return (
-            <button
-              key={index}
-              type="button"
-              disabled={hasAnswered}
-              onClick={() => onSelectOption(index)}
-              className={`
-                flex min-h-16 w-full items-center gap-4
-                rounded-xl border-2 px-4 py-3
-                text-left motion-safe:transition-colors motion-safe:duration-150
-                focus-visible:outline-2
-                focus-visible:outline-offset-2
-                focus-visible:outline-[var(--primary)]
-                disabled:cursor-default
-                ${
-                  isSelected
-                    ? selectedStyles
-                    : "border-[var(--border)] bg-white hover:bg-[#F3F8F5] disabled:hover:bg-white"
-                }
-              `}
-            >
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#F3F6F4] text-sm font-semibold text-[var(--foreground)]">
-                {String.fromCharCode(65 + index)}
-              </span>
-
-              <span className="min-w-0 flex-1 break-words [overflow-wrap:anywhere] font-medium">
-                {option}
-              </span>
-              {isSelected && (
-                <span aria-hidden="true">
-                  {isCorrect ? "✓" : "✕"}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>      
-      {/* Answer Feedback */}
+      {/* Answer feedback */}
       {hasAnswered && (
-        <div className="flex flex-col gap-4 text-center">
-          {/* Screen-reader announcement region */}
+        <div className="flex flex-col gap-4">
+          {/* Screen-reader announcement */}
           <div
             role="status"
             aria-live="polite"
             aria-atomic="true"
-            className="flex flex-col gap-4"
+            className="flex flex-col gap-3"
           >
             <p
-              className={`font-semibold ${
-                isCorrect
-                  ? "correct-answer-animation text-green-700"
-                  : "text-red-600"
-              }`}
+              className={`
+                text-center text-sm font-bold
+                ${
+                  isCorrect
+                    ? "correct-answer-animation text-emerald-400"
+                    : "text-rose-400"
+                }
+              `}
             >
               {isCorrect
-                ? "Correct! +1 point"
-                : "Incorrect!"}
+                ? "✓ Richtig! +1 point"
+                : "✕ Incorrect!"}
             </p>
 
-            {/* Streak Milestone */}
+            {/* Streak milestone */}
             {streakMilestone && (
               <div
                 className={`
                   streak-milestone-animation
-                  rounded-xl border p-4 text-center
+                  rounded-2xl border p-4
+                  text-center shadow-lg
                   ${streakMilestone.className}
                 `}
               >
-                <p className="text-lg font-bold">
+                <p className="text-lg font-extrabold">
                   {streakMilestone.title}
                 </p>
 
@@ -191,38 +136,38 @@ export default function QuizCard({
             )}
           </div>
 
-          {/* Interactive controls stay outside live region */}
+          {/* Next Question */}
           {isCorrect && (
             <button
               ref={nextButtonRef}
               type="button"
               onClick={onNextQuestion}
-              className="w-full rounded-xl bg-[var(--primary)] px-6 py-4 font-semibold text-white motion-safe:transition-colors hover:bg-[#115740] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]"
+              className="
+                flex min-h-14 w-full
+                items-center justify-center
+                gap-2 rounded-2xl
+                bg-gradient-to-r
+                from-amber-500 to-amber-600
+                px-6 py-4
+                text-sm font-extrabold
+                tracking-wide text-[#0F1117]
+                shadow-[0_8px_30px_-10px_rgba(245,158,11,0.45)]
+                transition-[filter,transform]
+                duration-200
+                hover:brightness-110
+                motion-safe:active:scale-[0.98]
+                motion-reduce:transition-none
+                focus-visible:outline-2
+                focus-visible:outline-offset-2
+                focus-visible:outline-amber-400
+              "
             >
-              Next Question →
+              Next Question
+              <span aria-hidden="true">→</span>
             </button>
           )}
-
-          
-          {/* Report Question */}
-          {/* {reportHref && (
-            <a
-              href={reportHref}
-              className="text-center text-sm font-medium
-                        text-[var(--muted)] underline
-                        underline-offset-4
-                        hover:text-[var(--primary)]
-                        focus-visible:outline-2
-                        focus-visible:outline-offset-2
-                        focus-visible:outline-[var(--primary)]"
-            >
-              Report a problem with this question
-            </a>
-          )} */}
-
         </div>
       )}
-
     </section>
   );
 }
