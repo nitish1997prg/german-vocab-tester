@@ -3,6 +3,8 @@ import type { ComponentProps } from "react";
 
 import BauhausHomeShell from "./BauhausHomeShell";
 import BauhausLevelSelector from "./BauhausLevelSelector";
+import ArticleWarmup from "./ArticleWarmup";
+
 
 type HomeScreenProps = {
   onSelectLevel: ComponentProps<
@@ -15,9 +17,13 @@ export default function HomeScreen({
 }: HomeScreenProps) {
   return (
     <BauhausHomeShell>
+      <div className="flex flex-col gap-6">
+        <ArticleWarmup />
+
         <BauhausLevelSelector
-        onSelectLevel={onSelectLevel}
-      />
+          onSelectLevel={onSelectLevel}
+        />
+      </div>
     </BauhausHomeShell>
   );
 }
