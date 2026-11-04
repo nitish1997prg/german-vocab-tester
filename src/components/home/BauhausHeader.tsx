@@ -4,6 +4,8 @@
 import { useSyncExternalStore } from "react";
 import { mono } from "@/lib/fonts";
 
+import SoundToggle from "./SoundToggle";
+
 function getGreeting(): string {
   const hour = new Date().getHours();
 
@@ -68,6 +70,7 @@ export default function BauhausHeader() {
         >
           20 QUESTIONS
         </span>
+        <SoundToggle />
       </div>
 
       {/* Branding */}

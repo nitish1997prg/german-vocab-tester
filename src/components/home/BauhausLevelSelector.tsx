@@ -6,6 +6,8 @@ import { useState } from "react";
 import type { GermanLevel } from "@/types/quiz";
 import { mono } from "@/lib/fonts";
 
+import { playSound } from "@/lib/sound-effects";
+
 type Props = {
   onSelectLevel: (
     level: GermanLevel
@@ -58,6 +60,7 @@ export default function BauhausLevelSelector({
     useState<GermanLevel>("A1");
 
   function handleStartChallenge() {
+    playSound("tap");
     void onSelectLevel(selectedLevel);
   }
 
@@ -97,7 +100,10 @@ export default function BauhausLevelSelector({
               key={level.id}
               type="button"
               aria-pressed={isSelected}
-              onClick={() => setSelectedLevel(level.id)}
+              onClick={() => {
+                setSelectedLevel(level.id);
+                playSound("tap");
+              }}
               className={`
                 relative flex min-h-[158px] min-w-0
                 flex-col rounded-2xl border

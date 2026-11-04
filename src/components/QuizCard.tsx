@@ -6,6 +6,7 @@ import { useEffect, useRef } from "react";
 import type { VocabularyQuestion } from "@/types/quiz";
 
 import BauhausQuestionPanel from "@/components/quiz/BauhausQuestionPanel";
+import { playSound } from "@/lib/sound-effects";
 
 interface QuizCardProps {
   question: VocabularyQuestion;
@@ -87,8 +88,19 @@ export default function QuizCard({
       <BauhausQuestionPanel
         question={question}
         selectedOptionIndex={selectedOptionIndex}
-        onSelectOption={onSelectOption}
-      />
+        onSelectOption={(index) => {
+          if (selectedOptionIndex !== null) {
+            return;
+          }
+
+          const correct =
+            index === question.correctOptionIndex;
+
+          playSound(correct ? "success" : "error");
+
+          onSelectOption(index);
+        }}
+            />
 
       {/* Answer feedback */}
       {hasAnswered && (

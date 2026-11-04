@@ -12,6 +12,8 @@ import {
   type GermanArticle,
 } from "@/lib/article-warmup";
 
+import { playSound } from "@/lib/sound-effects";
+
 const ARTICLES: {
   article: GermanArticle;
   gender: string;
@@ -82,6 +84,8 @@ export default function ArticleWarmup() {
       currentWord,
       article
     );
+
+    playSound(correct ? "success" : "error");
 
     setSelectedArticle(article);
 
