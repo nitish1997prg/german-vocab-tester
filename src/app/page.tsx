@@ -7,13 +7,11 @@ import { useEffect , useRef , useState } from "react";
 import type { GermanLevel, VocabularyQuestion } from "@/types/quiz";
 
 //Components
-import LevelSelector from "@/components/LevelSelector";
 import QuizCard from "@/components/QuizCard";
 import ResultScreen from "@/components/ResultScreen";
 import ChallengeCompleteScreen from "@/components/ChallengeCompleteScreen";
 import CompoundWordLoader from "@/components/CompoundWordLoader";
 import ReportQuestion from "@/components/ReportQuestion";
-import BauhausHomeShell from "@/components/home/BauhausHomeShell";
 import HomeScreen from "@/components/home/HomeScreen";
 import BauhausQuizProgress from "@/components/quiz/BauhausQuizProgress";
 
@@ -60,7 +58,7 @@ export default function Home() {
   const [error, setError] =
     useState<string | null>(null);
   
-  const [isPrefetching, setIsPrefetching] = useState(false);
+  const [, setIsPrefetching] = useState(false);
 
   const [noMoreWordsAvailable, setNoMoreWordsAvailable] =
     useState(false);
@@ -474,7 +472,7 @@ export default function Home() {
     );
   }
   
-  const isBauhausScreen = gameStatus === "playing" || gameStatus === "gameOver" || gameStatus === "noMoreWords";
+  const isBauhausScreen = gameStatus === "playing" || gameStatus === "gameOver" || gameStatus === "noMoreWords" || gameStatus === "completed";
 
 
 

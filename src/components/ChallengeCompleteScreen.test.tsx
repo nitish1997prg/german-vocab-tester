@@ -26,7 +26,7 @@ describe("ChallengeCompleteScreen", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: /Challenge Complete!/i,
+        name: /Challenge Complete/i,
       })
     ).toBeTruthy();
 

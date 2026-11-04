@@ -36,14 +36,14 @@ describe("ResultScreen", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: /Game Over!/i,
+        name: /Game Over/i,
       })
     ).toBeTruthy();
 
     expect(screen.getByText("7")).toBeTruthy();
 
     expect(
-      screen.getByText("B1 Vocabulary")
+      screen.getByText(/B1 Vocabulary/i)
     ).toBeTruthy();
   });
 
@@ -95,7 +95,7 @@ describe("ResultScreen", () => {
     );
 
     expect(
-      screen.getByText("Why this is correct")
+      screen.getByText(/Why This Is Correct/i)
     ).toBeTruthy();
 
     expect(
@@ -126,7 +126,7 @@ describe("ResultScreen", () => {
     ).toBeTruthy();
 
     expect(
-      screen.queryByText("Why this is correct")
+      screen.queryByText(/Why This Is Correct/i)
     ).toBeNull();
   });
 
@@ -149,7 +149,7 @@ describe("ResultScreen", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: /No More Words Available!/i,
+        name: /Session Complete/i,
       })
     ).toBeTruthy();
 
@@ -158,7 +158,7 @@ describe("ResultScreen", () => {
     ).toBeNull();
 
     expect(
-      screen.queryByText("Why this is correct")
+      screen.queryByText(/Why This Is Correct/i)
     ).toBeNull();
   });
 

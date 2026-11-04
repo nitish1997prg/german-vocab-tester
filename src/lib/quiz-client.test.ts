@@ -9,7 +9,6 @@ import {
 
 import {
   fetchQuizBatch,
-  QuizApiError,
 } from "./quiz-client";
 
 afterEach(() => {

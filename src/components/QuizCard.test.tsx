@@ -45,7 +45,7 @@ describe("QuizCard streak milestones", () => {
       expect(screen.getByText(message)).toBeTruthy();
 
       expect(
-        screen.getByText("Correct! +1 point")
+        screen.getByText(/Richtig! \+1 point/)
       ).toBeTruthy();
     }
   );
@@ -73,7 +73,7 @@ describe("QuizCard streak milestones", () => {
       screen.queryByText(/in a row!/i)
     ).toBeNull();
 
-    expect(screen.getByText("Incorrect!")).toBeTruthy();
+    expect(screen.getByText(/Incorrect!/)).toBeTruthy();
   });
 
   
@@ -120,7 +120,7 @@ describe("QuizCard streak milestones", () => {
     ).toBe("true");
 
     expect(status.textContent).toContain(
-      "Correct! +1 point"
+      "Richtig! +1 point"
     );
 
     // Interactive controls should not be inside
@@ -142,7 +142,7 @@ describe("QuizCard streak milestones", () => {
     const status = screen.getByRole("status");
 
     expect(status.textContent).toContain(
-      "Correct! +1 point"
+      "Richtig! +1 point"
     );
 
     expect(status.textContent).toContain(
@@ -179,7 +179,7 @@ describe("QuizCard streak milestones", () => {
     expect(heading).toBeTruthy();
 
     expect(heading.className).toContain(
-      "[overflow-wrap:anywhere]"
+      "break-words"
     );
   });
 

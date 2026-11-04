@@ -7,5 +7,6 @@ export default defineConfig({
   plugins: [tsconfigPaths(),react()],
   test: {
     environment: "node",
+    setupFiles: ["./vitest.setup.ts"],
   },
 });

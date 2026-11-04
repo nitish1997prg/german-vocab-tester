@@ -16,6 +16,7 @@ import {
   fireEvent,
   render,
   screen,
+  within,
 } from "@testing-library/react";
 
 import { rememberWord } from "@/lib/vocabulary-history";
@@ -108,7 +109,7 @@ function answerCorrectlyThrough(lastQuestion: number) {
     }
 
     expect(
-      screen.getByText(`das Testwort ${number}`)
+      screen.getByRole("heading", { name: `Testwort ${number}` })
     ).toBeTruthy();
 
     fireEvent.click(
@@ -139,12 +140,14 @@ function startA1Game() {
   render(<Home />);
 
   fireEvent.click(
-    screen.getByRole("button", { name: /A1/i })
+    within(
+      screen.getByRole("group", { name: "German proficiency levels" })
+    ).getByRole("button", { name: /^A1/i })
   );
 
   fireEvent.click(
     screen.getByRole("button", {
-      name: /Start Challenge/i,
+      name: /Start A1 Challenge/i,
     })
   );
 }
@@ -162,7 +165,7 @@ describe("German Vocabulary Gameplay", () => {
 
     // Wait for generated questions to load
     expect(
-      await screen.findByText("der Apfel")
+      await screen.findByRole("heading", { name: "Apfel" })
     ).toBeTruthy();
 
     // Select the correct answer
@@ -171,11 +174,13 @@ describe("German Vocabulary Gameplay", () => {
     );
 
     expect(
-      screen.getByText("Correct! +1 point")
+      screen.getByText(/Richtig! \+1 point/)
     ).toBeTruthy();
 
     expect(
-      screen.getByText(/🏆\s*1/)
+      within(
+          screen.getByRole("region", { name: "Quiz progress" })
+        ).getByText("1")
     ).toBeTruthy();
 
     // Move to next question
@@ -186,12 +191,14 @@ describe("German Vocabulary Gameplay", () => {
     );
 
     expect(
-      screen.getByText("das Haus")
+      screen.getByRole("heading", { name: "Haus" })
     ).toBeTruthy();
 
     // Score should still be 1
     expect(
-      screen.getByText(/🏆\s*1/)
+      within(
+          screen.getByRole("region", { name: "Quiz progress" })
+        ).getByText("1")
     ).toBeTruthy();
   });
 
@@ -204,7 +211,7 @@ describe("German Vocabulary Gameplay", () => {
 
     startA1Game();
 
-    await screen.findByText("der Apfel");
+    await screen.findByRole("heading", { name: "Apfel" });
 
     // Select an incorrect answer
     fireEvent.click(
@@ -213,7 +220,7 @@ describe("German Vocabulary Gameplay", () => {
 
     expect(
         screen.getByRole("heading", {
-        name: "Game Over!",
+        name: /Game Over/i,
         })
     ).toBeTruthy();
 
@@ -243,7 +250,7 @@ describe("German Vocabulary Gameplay", () => {
 
     startA1Game();
 
-    await screen.findByText("der Apfel");
+    await screen.findByRole("heading", { name: "Apfel" });
 
     // Answer the first question correctly
     fireEvent.click(
@@ -272,7 +279,7 @@ describe("German Vocabulary Gameplay", () => {
 
     // The next batch loads
     expect(
-        await screen.findByText("das Haus")
+        await screen.findByRole("heading", { name: "Haus" })
     ).toBeTruthy();
 
     // Previously used vocabulary was excluded
@@ -285,7 +292,9 @@ describe("German Vocabulary Gameplay", () => {
 
     // Score remains 1
     expect(
-        screen.getByText(/🏆\s*1/)
+        within(
+          screen.getByRole("region", { name: "Quiz progress" })
+        ).getByText("1")
     ).toBeTruthy();
     });
 
@@ -303,7 +312,7 @@ describe("German Vocabulary Gameplay", () => {
 
     startA1Game();
 
-    await screen.findByText("der Apfel");
+    await screen.findByRole("heading", { name: "Apfel" });
 
     fireEvent.click(
         screen.getByRole("button", { name: /Apple/i })
@@ -317,7 +326,7 @@ describe("German Vocabulary Gameplay", () => {
 
     expect(
         await screen.findByRole("heading", {
-        name: "No More Words Available!",
+        name: /Session Complete/i,
         })
     ).toBeTruthy();
 
@@ -345,7 +354,7 @@ describe("German Vocabulary Gameplay", () => {
 
     startA1Game();
 
-    await screen.findByText("das Testwort 1");
+    await screen.findByRole("heading", { name: "Testwort 1" });
 
     // Correctly answer questions 1–10
     answerCorrectlyThrough(10);
@@ -359,7 +368,7 @@ describe("German Vocabulary Gameplay", () => {
       })
     );
 
-    await screen.findByText("das Testwort 11");
+    await screen.findByRole("heading", { name: "Testwort 11" });
 
     // Correctly answer questions 11–20
     for (let number = 11; number <= 20; number++) {
@@ -372,7 +381,7 @@ describe("German Vocabulary Gameplay", () => {
       }
 
       expect(
-        screen.getByText(`das Testwort ${number}`)
+        screen.getByRole("heading", { name: `Testwort ${number}` })
       ).toBeTruthy();
 
       fireEvent.click(
@@ -385,17 +394,21 @@ describe("German Vocabulary Gameplay", () => {
     // Successful completion
     expect(
       screen.getByRole("heading", {
-        name: /Challenge Complete!/i,
+        name: /Challenge Complete/i,
       })
     ).toBeTruthy();
 
     expect(
-      screen.getByText(/20\s*\/\s*20/)
+      within(screen.getByRole("region", { name: /Challenge Complete/i })).getByText("20")
+    ).toBeTruthy();
+
+    expect(
+      within(screen.getByRole("region", { name: /Challenge Complete/i })).getByText("/ 20")
     ).toBeTruthy();
 
     // No question 21
     expect(
-      screen.queryByText("das Testwort 21")
+      screen.queryByRole("heading", { name: "Testwort 21" })
     ).toBeNull();
 
     expect(
@@ -417,7 +430,7 @@ describe("German Vocabulary Gameplay", () => {
 
     startA1Game();
 
-    await screen.findByText("das Testwort 1");
+    await screen.findByRole("heading", { name: "Testwort 1" });
 
     // Answer the first question correctly
     fireEvent.click(
@@ -434,7 +447,7 @@ describe("German Vocabulary Gameplay", () => {
     );
 
     expect(
-      screen.getByText("das Testwort 2")
+      screen.getByRole("heading", { name: "Testwort 2" })
     ).toBeTruthy();
 
     // Answer incorrectly
@@ -446,7 +459,7 @@ describe("German Vocabulary Gameplay", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: /Game Over!/i,
+        name: /Game Over/i,
       })
     ).toBeTruthy();
 
@@ -473,7 +486,7 @@ describe("German Vocabulary Gameplay", () => {
 
     startA1Game();
 
-    await screen.findByText("das Testwort 1");
+    await screen.findByRole("heading", { name: "Testwort 1" });
 
     expect(mockFetchQuizBatch).toHaveBeenCalledWith(
       "A1",
@@ -503,7 +516,7 @@ describe("German Vocabulary Gameplay", () => {
     startA1Game();
 
     expect(
-      await screen.findByText("das Testwort 1")
+      await screen.findByRole("heading", { name: "Testwort 1" })
     ).toBeTruthy();
 
     expect(mockFetchQuizBatch).toHaveBeenCalledTimes(2);
@@ -529,7 +542,7 @@ describe("German Vocabulary Gameplay", () => {
     // The game should start normally
     expect(
       screen.queryByRole("heading", {
-        name: /No More Words Available/i,
+        name: /Session Complete/i,
       })
     ).toBeNull();
   });
@@ -555,7 +568,7 @@ describe("German Vocabulary Gameplay", () => {
 
     startA1Game();
 
-    await screen.findByText("das Testwort 1");
+    await screen.findByRole("heading", { name: "Testwort 1" });
 
     // Answering question 5 triggers background prefetch
     answerCorrectlyThrough(5);
@@ -614,7 +627,7 @@ describe("German Vocabulary Gameplay", () => {
 
       startA1Game();
 
-      await screen.findByText("das Testwort 1");
+      await screen.findByRole("heading", { name: "Testwort 1" });
 
       // Expired words should not be excluded
       expect(mockFetchQuizBatch).toHaveBeenCalledWith(
@@ -638,7 +651,7 @@ describe("German Vocabulary Gameplay", () => {
 
     expect(
       await screen.findByRole("heading", {
-        name: /No More Words Available/i,
+        name: /Session Complete/i,
       })
     ).toBeTruthy();
 
@@ -663,7 +676,7 @@ describe("German Vocabulary Gameplay", () => {
 
     expect(
       await screen.findByRole("heading", {
-        name: /No More Words Available/i,
+        name: /Session Complete/i,
       })
     ).toBeTruthy();
 
@@ -701,7 +714,7 @@ describe("German Vocabulary Gameplay", () => {
 
     startA1Game();
 
-    await screen.findByText("das Testwort 1");
+    await screen.findByRole("heading", { name: "Testwort 1" });
 
     // Complete the first 10 questions
     answerCorrectlyThrough(10);
@@ -713,7 +726,7 @@ describe("German Vocabulary Gameplay", () => {
       })
     );
 
-    await screen.findByText("das Testwort 11");
+    await screen.findByRole("heading", { name: "Testwort 11" });
 
     // Complete questions 11–20
     for (let number = 11; number <= 20; number++) {
@@ -734,7 +747,7 @@ describe("German Vocabulary Gameplay", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: /Challenge Complete!/i,
+        name: /Challenge Complete/i,
       })
     ).toBeTruthy();
 
@@ -755,18 +768,22 @@ describe("German Vocabulary Gameplay", () => {
 
     // A2 question should appear
     expect(
-      await screen.findByText("die Einladung")
+      await screen.findByRole("heading", { name: "Einladung" })
     ).toBeTruthy();
 
     // A2 starts from zero
     expect(
       screen.getByRole("progressbar", {
-        name: /Correct answers/i,
+        name: /Questions completed/i,
       }).getAttribute("aria-valuenow")
     ).toBe("0");
 
     expect(
-      screen.getByText("Question 1 of 20")
+      within(screen.getByRole("region", { name: "Quiz progress" })).getByText("0")
+    ).toBeTruthy();
+
+    expect(
+      screen.getByRole("heading", { name: /^Question 1\s*\/\s*20$/ })
     ).toBeTruthy();
   });
 
@@ -802,7 +819,7 @@ describe("German Vocabulary Gameplay", () => {
 
     // Quiz should now replace the loader
     expect(
-      await screen.findByText("das Testwort 1")
+      await screen.findByRole("heading", { name: "Testwort 1" })
     ).toBeTruthy();
 
     expect(
@@ -842,7 +859,7 @@ describe("German Vocabulary Gameplay", () => {
 
     // First question is now visible
     expect(
-      await screen.findByText("das Testwort 1")
+      await screen.findByRole("heading", { name: "Testwort 1" })
     ).toBeTruthy();
 
     // Loader has disappeared
@@ -918,7 +935,7 @@ describe("Background Prefetching", () => {
 
     startA1Game();
 
-    await screen.findByText("das Testwort 1");
+    await screen.findByRole("heading", { name: "Testwort 1" });
 
     // Answer questions 1–4
     answerCorrectlyThrough(4);
@@ -950,7 +967,7 @@ describe("Background Prefetching", () => {
     );
 
     expect(
-      screen.getByText("das Testwort 6")
+      screen.getByRole("heading", { name: "Testwort 6" })
     ).toBeTruthy();
   });
 
@@ -970,7 +987,7 @@ describe("Background Prefetching", () => {
 
     startA1Game();
 
-    await screen.findByText("das Testwort 1");
+    await screen.findByRole("heading", { name: "Testwort 1" });
 
     // Player answers all 10 questions quickly
     answerCorrectlyThrough(10);
@@ -998,7 +1015,7 @@ describe("Background Prefetching", () => {
     });
 
     expect(
-      await screen.findByText("das Testwort 11")
+      await screen.findByRole("heading", { name: "Testwort 11" })
     ).toBeTruthy();
 
     expect(mockFetchQuizBatch).toHaveBeenCalledTimes(2);
@@ -1025,7 +1042,7 @@ describe("Background Prefetching", () => {
 
     startA1Game();
 
-    await screen.findByText("das Testwort 1");
+    await screen.findByRole("heading", { name: "Testwort 1" });
 
     // Answer questions 1–5.
     // Question 5 triggers background prefetching.
@@ -1045,7 +1062,7 @@ describe("Background Prefetching", () => {
 
     // The game should still display question 5.
     expect(
-      screen.getByText("das Testwort 5")
+      screen.getByRole("heading", { name: "Testwort 5" })
     ).toBeTruthy();
 
     // Continue answering questions 6–10.
@@ -1057,7 +1074,7 @@ describe("Background Prefetching", () => {
       );
 
       expect(
-        screen.getByText(`das Testwort ${number}`)
+        screen.getByRole("heading", { name: `Testwort ${number}` })
       ).toBeTruthy();
 
       fireEvent.click(
@@ -1077,7 +1094,7 @@ describe("Background Prefetching", () => {
     );
 
     expect(
-      await screen.findByText("das Testwort 11")
+      await screen.findByRole("heading", { name: "Testwort 11" })
     ).toBeTruthy();
 
     // Initial request + failed prefetch + recovery request.
@@ -1099,7 +1116,7 @@ describe("Background Prefetching", () => {
 
     startA1Game();
 
-    await screen.findByText("das Testwort 1");
+    await screen.findByRole("heading", { name: "Testwort 1" });
 
     answerCorrectlyThrough(5);
 
@@ -1116,7 +1133,7 @@ describe("Background Prefetching", () => {
     );
 
     expect(
-      screen.getByText("das Testwort 6")
+      screen.getByRole("heading", { name: "Testwort 6" })
     ).toBeTruthy();
 
     
@@ -1132,7 +1149,7 @@ describe("Background Prefetching", () => {
 
       // Verify the expected question is displayed
       expect(
-        screen.getByText(`das Testwort ${number}`)
+        screen.getByRole("heading", { name: `Testwort ${number}` })
       ).toBeTruthy();
 
       // Match the answer even if it includes an option label
@@ -1153,7 +1170,7 @@ describe("Background Prefetching", () => {
 
     expect(
       await screen.findByRole("heading", {
-        name: /No More Words Available/i,
+        name: /Session Complete/i,
       })
     ).toBeTruthy();
 
@@ -1176,7 +1193,7 @@ describe("Background Prefetching", () => {
 
     startA1Game();
 
-    await screen.findByText("das Testwort 1");
+    await screen.findByRole("heading", { name: "Testwort 1" });
 
     answerCorrectlyThrough(5);
 
@@ -1238,7 +1255,7 @@ describe("Background Prefetching", () => {
 
     startA1Game();
 
-    await screen.findByText("das Testwort 1");
+    await screen.findByRole("heading", { name: "Testwort 1" });
 
     // Answer questions 1 through 10
     answerCorrectlyThrough(10);
@@ -1258,7 +1275,7 @@ describe("Background Prefetching", () => {
     );
 
     expect(
-      await screen.findByText("das Testwort 11")
+      await screen.findByRole("heading", { name: "Testwort 11" })
     ).toBeTruthy();
 
     // Answer questions 11 through 20
@@ -1272,7 +1289,7 @@ describe("Background Prefetching", () => {
       }
 
       expect(
-        screen.getByText(`das Testwort ${number}`)
+        screen.getByRole("heading", { name: `Testwort ${number}` })
       ).toBeTruthy();
 
       fireEvent.click(
@@ -1285,13 +1302,13 @@ describe("Background Prefetching", () => {
     // Completing question 20 ends the game
     expect(
       screen.getByRole("heading", {
-        name: /Challenge Complete!/i,
+        name: /Challenge Complete/i,
       })
     ).toBeTruthy();
 
     // Extra questions must never become playable
     expect(
-      screen.queryByText("das Testwort 21")
+      screen.queryByRole("heading", { name: "Testwort 21" })
     ).toBeNull();
 
     // No additional generation requests
@@ -1314,7 +1331,7 @@ describe("Background Prefetching", () => {
 
     startA1Game();
 
-    await screen.findByText("das Testwort 1");
+    await screen.findByRole("heading", { name: "Testwort 1" });
 
     // Answering question 5 starts background prefetch
     answerCorrectlyThrough(5);
@@ -1361,7 +1378,7 @@ describe("Navigation and Request Cleanup", () => {
 
     startA1Game();
 
-    await screen.findByText("das Testwort 1");
+    await screen.findByRole("heading", { name: "Testwort 1" });
 
     // Question 5 triggers background prefetching
     answerCorrectlyThrough(5);
@@ -1369,9 +1386,7 @@ describe("Navigation and Request Cleanup", () => {
     expect(mockFetchQuizBatch).toHaveBeenCalledTimes(2);
 
     fireEvent.click(
-      screen.getByRole("button", {
-        name: /Exit Quiz/i,
-      })
+      within(screen.getByRole("region", { name: "Quiz progress" })).getByRole("button", { name: /Exit Quiz/i })
     );
 
     // The second (background) request should be aborted
@@ -1381,7 +1396,9 @@ describe("Navigation and Request Cleanup", () => {
 
     // Return to level selection
     expect(
-      screen.getByRole("button", { name: /A1/i })
+      within(
+      screen.getByRole("group", { name: "German proficiency levels" })
+    ).getByRole("button", { name: /^A1/i })
     ).toBeTruthy();
 
     // Simulate the old prefetch completing anyway
@@ -1396,7 +1413,7 @@ describe("Navigation and Request Cleanup", () => {
 
     // Neither the old nor new questions should reappear
     expect(
-      screen.queryByText("das Testwort 11")
+      screen.queryByRole("heading", { name: "Testwort 11" })
     ).toBeNull();
 
     expect(
@@ -1419,7 +1436,7 @@ describe("Navigation and Request Cleanup", () => {
 
     startA1Game();
 
-    await screen.findByText("das Testwort 1");
+    await screen.findByRole("heading", { name: "Testwort 1" });
 
     // Score one point
     fireEvent.click(
@@ -1443,7 +1460,7 @@ describe("Navigation and Request Cleanup", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: /Game Over!/i,
+        name: /Game Over/i,
       })
     ).toBeTruthy();
 
@@ -1457,17 +1474,21 @@ describe("Navigation and Request Cleanup", () => {
     // A new batch should have been requested
     expect(mockFetchQuizBatch).toHaveBeenCalledTimes(2);
 
-    await screen.findByText("das Testwort 11");
+    await screen.findByRole("heading", { name: "Testwort 11" });
 
     // New game starts with score 0
     expect(
       screen.getByRole("progressbar", {
-        name: /Correct answers/i,
+        name: /Questions completed/i,
       }).getAttribute("aria-valuenow")
     ).toBe("0");
 
     expect(
-      screen.getByText("Question 1 of 20")
+      within(screen.getByRole("region", { name: "Quiz progress" })).getByText("0")
+    ).toBeTruthy();
+
+    expect(
+      screen.getByRole("heading", { name: /^Question 1\s*\/\s*20$/ })
     ).toBeTruthy();
   });
 
@@ -1508,9 +1529,7 @@ describe("Navigation and Request Cleanup", () => {
 
     // Once the quiz is ready, Exit Quiz appears
     expect(
-      screen.getByRole("button", {
-        name: /Exit Quiz/i,
-      })
+      within(screen.getByRole("region", { name: "Quiz progress" })).getByRole("button", { name: /Exit Quiz/i })
     ).toBeTruthy();
   });
 

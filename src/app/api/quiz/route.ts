@@ -4,14 +4,11 @@ import { NextResponse } from "next/server";
 
 import type { GermanLevel, VocabularyQuestion } from "@/types/quiz";
 
-//Quiz Schema
-import { QuizBatchSchema } from "@/lib/quiz-schema";
-
 //Vocab filter - preserve uniqueness in a batch and across different batches
 import { filterUniqueQuestions } from "@/lib/quiz-uniqueness";
 
 //Fischer-Yates shuffling of options
-import { shuffleQuestionOptions, shuffleQuestions } from "@/lib/quiz-shuffle";
+import { shuffleQuestionOptions } from "@/lib/quiz-shuffle";
 
 import {
   GeneratedQuizBatchSchema,
