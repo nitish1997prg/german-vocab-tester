@@ -483,34 +483,24 @@ export default function Home() {
     );
   }
   
-  const isBauhausScreen = gameStatus === "playing" || gameStatus === "gameOver" || gameStatus === "noMoreWords" || gameStatus === "completed";
-
+  const shouldCenterQuiz =
+  gameStatus === "playing" &&
+  currentQuestion !== null &&
+  !isLoading &&
+  !error;
 
 
   return (
-    <main className={
-    isBauhausScreen
-      ? "min-h-dvh bg-[var(--wm-canvas)] text-[var(--wm-text)]"
-      : "flex min-h-dvh items-center justify-center px-3 py-6 sm:px-6 sm:py-10"
-  }>
-    <div className={
-      isBauhausScreen
-        ? `
-          mx-auto flex w-full min-w-0
-          max-w-md flex-col
-          gap-3 sm:gap-5
-          px-4 pt-3 pb-5
-          sm:px-5 sm:py-8
-        `
-        : `
-          flex w-full min-w-0 max-w-md
-          flex-col items-center gap-6
-          rounded-3xl border
-          border-[var(--border)]
-          bg-[var(--surface)]
-          p-5 shadow-sm sm:p-8
-        `
-    }>
+    <main className= "flex min-h-dvh w-full flex-col bg-[var(--wm-canvas)] text-[var(--wm-text)]">
+    <div className= {`
+        mx-auto flex w-full min-w-0
+        max-w-md flex-col
+        gap-3 sm:gap-5
+        px-4 py-3 pb-5
+        sm:px-5 sm:py-8
+
+        ${shouldCenterQuiz ? "my-auto" : "my-0"}
+      `}>
   
 
       

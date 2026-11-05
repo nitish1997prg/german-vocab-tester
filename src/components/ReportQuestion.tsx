@@ -78,107 +78,203 @@ export default function ReportQuestion({
 
   if (status === "success") {
     return (
-      <p role="status" className="text-sm text-green-700">
-        Report received. Thank you for helping us
-        improve the questions.
-      </p>
+      <div
+        role="status"
+        className="
+          flex w-full items-start gap-3
+          rounded-xl border
+          border-emerald-500/30
+          bg-emerald-500/10
+          p-4 text-sm
+          text-emerald-300
+        "
+      >
+        <span aria-hidden="true">✓</span>
+
+        <p className="leading-relaxed">
+          Report received. Thank you for helping
+          us improve the questions.
+        </p>
+      </div>
     );
   }
 
   return (
-    <section className="mt-4 text-sm">
+    <section
+      aria-label="Question reporting"
+      className="w-full"
+    >
+      {/* Collapsed report trigger */}
       <button
         type="button"
         aria-expanded={isOpen}
+        disabled={isSubmitting}
         onClick={() => {
           setIsOpen((current) => !current);
           setStatus("idle");
         }}
-        className="text-gray-600 underline underline-offset-4"
+        className="
+          mx-auto flex min-h-11
+          items-center justify-center
+          gap-2 rounded-lg
+          px-3 py-2
+          text-xs font-medium
+          text-gray-400
+          transition-colors
+          hover:text-amber-400
+          disabled:cursor-not-allowed
+          disabled:opacity-60
+          focus-visible:outline-2
+          focus-visible:outline-offset-2
+          focus-visible:outline-amber-400
+        "
       >
-        Report question
+        <span aria-hidden="true" className="text-base">
+          ⚑
+        </span>
+
+        <span>Report question</span>
+
+        <span
+          aria-hidden="true"
+          className={`
+            inline-block text-sm
+            transition-transform duration-200
+            motion-reduce:transition-none
+            ${isOpen ? "rotate-180" : ""}
+          `}
+        >
+          ▾
+        </span>
       </button>
 
+      {/* Expanded report form */}
       {isOpen && (
         <form
           onSubmit={submitReport}
-          className="mt-3 space-y-3 rounded-xl border
-                     border-gray-200 bg-white p-4"
+          className="
+            wm-feedback-enter
+            mt-3 flex w-full flex-col gap-4
+            rounded-2xl border
+            border-[var(--wm-border)]
+            bg-[var(--wm-surface)]
+            p-4
+          "
         >
-          <h3 className="font-semibold text-gray-900">
-            Report this question
-          </h3>
+          {/* Form heading */}
+          <div className="space-y-2">
+            <h3 className="text-base font-bold text-white">
+              Report this question
+            </h3>
 
-          <label
-            htmlFor="report-reason"
-            className="block text-gray-700"
-          >
-            Why are you reporting it?
-          </label>
+            <p className="text-xs leading-relaxed text-gray-400">
+              Help us improve the quality of
+              AI-generated vocabulary questions.
+            </p>
+          </div>
 
-          <select
-            id="report-reason"
-            value={reason}
-            onChange={(event) =>
-              setReason(
-                event.target.value as ReportReason
-              )
-            }
-            className="w-full rounded-lg border
-                       border-gray-300 p-3 text-gray-900"
-          >
-            <option value="offensive">
-              Offensive or inappropriate content
-            </option>
+          {/* Report reason */}
+          <div className="space-y-2">
+            <label
+              htmlFor="report-reason"
+              className="
+                block text-sm
+                font-semibold text-gray-200
+              "
+            >
+              Why are you reporting it?
+            </label>
 
-            <option value="incorrect">
-              Incorrect translation or answer
-            </option>
+            <select
+              id="report-reason"
+              value={reason}
+              disabled={isSubmitting}
+              onChange={(event) =>
+                setReason(
+                  event.target.value as ReportReason
+                )
+              }
+              className="
+                min-h-12 w-full
+                rounded-xl border
+                border-[#3A425A]
+                bg-[var(--wm-surface-raised)]
+                px-3 py-3 text-sm
+                text-white
+                outline-none
+                transition-colors
+                focus:border-amber-500
+                focus-visible:outline-2
+                focus-visible:outline-offset-2
+                focus-visible:outline-amber-400
+                disabled:opacity-60
+              "
+            >
+              <option value="offensive">
+                Offensive or inappropriate content
+              </option>
 
-            <option value="level">
-              Incorrect difficulty level
-            </option>
+              <option value="incorrect">
+                Incorrect translation or answer
+              </option>
 
-            <option value="other">
-              Other problem
-            </option>
-          </select>
+              <option value="level">
+                Incorrect difficulty level
+              </option>
 
+              <option value="other">
+                Other problem
+              </option>
+            </select>
+          </div>
+
+          {/* Error feedback */}
           {status === "error" && (
-            <p role="alert" className="text-red-700">
+            <div
+              role="alert"
+              className="
+                rounded-xl border
+                border-rose-500/30
+                bg-rose-500/10
+                p-3 text-sm
+                leading-relaxed
+                text-rose-300
+              "
+            >
               Could not submit the report.
               Please try again.
-            </p>
+            </div>
           )}
 
-          
-
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        style={{
-          backgroundColor: "#176B63",
-          color: "#FFFFFF",
-        }}
-        className="
-          mt-2 w-full rounded-xl
-          px-5 py-3
-          text-base font-semibold
-          shadow-md
-          transition-all duration-200
-          hover:brightness-95
-          active:scale-[0.98]
-          focus-visible:outline-2
-          focus-visible:outline-offset-2
-          focus-visible:outline-[#176B63]
-          disabled:cursor-not-allowed
-          disabled:opacity-60
-        "
-      >
-        {isSubmitting ? "Submitting..." : "Submit report"}
-      </button>
-
-
+          {/* Submit button */}
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="
+              flex min-h-12 w-full
+              items-center justify-center
+              gap-2 rounded-xl
+              bg-amber-500
+              px-5 py-3
+              text-sm font-extrabold
+              text-[#0F1117]
+              shadow-[0_6px_20px_-10px_rgba(245,158,11,0.5)]
+              transition-[background-color,transform]
+              duration-200
+              hover:bg-amber-400
+              motion-safe:active:scale-[0.98]
+              motion-reduce:transition-none
+              disabled:cursor-not-allowed
+              disabled:opacity-60
+              focus-visible:outline-2
+              focus-visible:outline-offset-2
+              focus-visible:outline-amber-400
+            "
+          >
+            {isSubmitting
+              ? "Submitting..."
+              : "Submit Report"}
+          </button>
         </form>
       )}
     </section>

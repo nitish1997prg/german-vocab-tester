@@ -39,11 +39,12 @@ export default function BauhausHomeShell({
       >
         <BauhausHeader />
 
-        {/* Existing home-screen functionality */}
-        <div className="mt-7 flex-1">
-          {children}
+        {/* Home content — vertically balanced */}
+        <div className="mt-4 flex flex-1 flex-col">
+          <div className="my-auto py-4">
+            {children}
+          </div>
         </div>
-
         {/* Footer */}
         <footer
           className="mt-7 flex items-center
