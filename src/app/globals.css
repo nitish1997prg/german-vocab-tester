@@ -491,3 +491,106 @@ body {
     animation: none;
   }
 }
+
+
+/* Checkpoint 10 — Umlaut Catcher */
+
+.wm-umlaut-board {
+  background-image:
+    linear-gradient(
+      to right,
+      rgba(148, 163, 184, 0.08) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      rgba(148, 163, 184, 0.08) 1px,
+      transparent 1px
+    );
+
+  background-size: 24px 24px;
+}
+
+/* Drift with occasional changes in direction */
+
+@keyframes wm-umlaut-float {
+  from {
+    transform: translate(-50%, -50%);
+  }
+
+  to {
+    transform: translate(
+      calc(-50% + var(--wm-drift-x)),
+      calc(-50% + var(--wm-drift-y))
+    );
+  }
+}
+
+.wm-umlaut-drift {
+  transform: translate(-50%, -50%);
+
+  animation-name: wm-umlaut-float;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+
+/* +10 reward rises and fades */
+
+@keyframes wm-umlaut-reward {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+
+  45% {
+    opacity: 1;
+    transform: translate(-50%, -110%) scale(1.15);
+  }
+
+  to {
+    opacity: 0;
+    transform: translate(-50%, -170%) scale(1);
+  }
+}
+
+.wm-umlaut-burst {
+  animation: wm-umlaut-reward 450ms ease-out both;
+}
+
+/* Indeterminate loading indicator */
+
+@keyframes wm-umlaut-loading {
+  from {
+    transform: translateX(-110%);
+  }
+
+  to {
+    transform: translateX(310%);
+  }
+}
+
+.wm-umlaut-loading-bar {
+  animation: wm-umlaut-loading 1.6s
+    ease-in-out infinite;
+}
+
+/* Accessible reduced-motion mode */
+
+@media (prefers-reduced-motion: reduce) {
+  .wm-umlaut-drift,
+  .wm-umlaut-burst,
+  .wm-umlaut-loading-bar {
+    animation: none;
+  }
+
+  .wm-umlaut-drift,
+  .wm-umlaut-burst {
+    transform: translate(-50%, -50%);
+  }
+
+  .wm-umlaut-loading-bar {
+    width: 100%;
+    opacity: 0.5;
+  }
+}

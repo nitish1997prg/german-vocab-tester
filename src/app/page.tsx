@@ -14,6 +14,7 @@ import CompoundWordLoader from "@/components/CompoundWordLoader";
 import ReportQuestion from "@/components/ReportQuestion";
 import HomeScreen from "@/components/home/HomeScreen";
 import BauhausQuizProgress from "@/components/quiz/BauhausQuizProgress";
+import UmlautCatcherLoader from "@/components/quiz/UmlautCatcherLoader";
 
 //Utility functions
 import { fetchQuizBatch } from "@/lib/quiz-client";
@@ -509,41 +510,7 @@ export default function Home() {
           p-5 shadow-sm sm:p-8
         `
     }>
-
-      
-      {selectedLevel !== null &&
-        gameStatus === "playing" &&
-        !error && !isLoading &&  (
-          <div className="flex w-full justify-end">
-            <button
-              type="button"
-              onClick={changeLevel}
-              className="
-                rounded-lg border border-[var(--border)]
-                px-3 py-2 text-sm font-medium
-                text-[var(--muted)]
-                transition-colors
-                hover:bg-gray-100
-                hover:text-gray-900
-                focus-visible:outline-2
-                focus-visible:outline-offset-2
-                focus-visible:outline-green-700
-              "
-            >
-              Exit Quiz
-            </button>
-          </div>
-        )}      
-      
-    {isLoading && (
-      <CompoundWordLoader
-        message={
-          questions.length === 0
-            ? "Generating your vocabulary questions..."
-            : "Preparing more vocabulary questions..."
-        }
-      />
-    )}
+  
 
       
       {error && selectedLevel && (
@@ -675,7 +642,7 @@ export default function Home() {
         )}
 
       </div>
-     
+     <UmlautCatcherLoader active={isLoading} />
     </main>
   );
 }
