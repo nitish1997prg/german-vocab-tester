@@ -28,8 +28,8 @@ describe("PWA manifest", () => {
   it("uses the application theme colour", () => {
     const config = manifest();
 
-    expect(config.theme_color).toBe("#176B63");
-    expect(config.background_color).toBe("#FFFFFF");
+    expect(config.theme_color).toBe("#0F1117");
+    expect(config.background_color).toBe("#0F1117");
   });
 
   

@@ -10,11 +10,9 @@ import type { GermanLevel, VocabularyQuestion } from "@/types/quiz";
 import QuizCard from "@/components/QuizCard";
 import ResultScreen from "@/components/ResultScreen";
 import ChallengeCompleteScreen from "@/components/ChallengeCompleteScreen";
-import CompoundWordLoader from "@/components/CompoundWordLoader";
 import ReportQuestion from "@/components/ReportQuestion";
 import HomeScreen from "@/components/home/HomeScreen";
 import BauhausQuizProgress from "@/components/quiz/BauhausQuizProgress";
-import UmlautCatcherLoader from "@/components/quiz/UmlautCatcherLoader";
 import CompoundWordFactoryLoader from "@/components/quiz/CompoundWordFactoryLoader";
 
 //Utility functions

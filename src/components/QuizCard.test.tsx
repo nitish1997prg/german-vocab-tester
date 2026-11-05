@@ -1,13 +1,17 @@
 
 // @vitest-environment jsdom
 
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { act, cleanup, render, screen } from "@testing-library/react";
 
 import QuizCard from "./QuizCard";
 import type { VocabularyQuestion } from "@/types/quiz";
 
-afterEach(cleanup);
+beforeEach(() => vi.useFakeTimers());
+afterEach(() => {
+  cleanup();
+  vi.useRealTimers();
+});
 
 const question: VocabularyQuestion = {
   id: "test-question",
@@ -77,35 +81,42 @@ describe("QuizCard streak milestones", () => {
   });
 
   
-  it("focuses Next Question after a correct answer", () => {
-    const { rerender } = render(
-      <QuizCard
-        question={question}
-        score={0}
-        selectedOptionIndex={null}
-        onSelectOption={vi.fn()}
-        onNextQuestion={vi.fn()}
-      />
+  it.each([[1, 900], [5, 2100], [10, 2100], [15, 2100]])(
+    "automatically advances at score %i after %i ms",
+    (score, delay) => {
+      const onNextQuestion = vi.fn();
+      render(
+        <QuizCard question={question} score={score} selectedOptionIndex={0}
+          onSelectOption={vi.fn()} onNextQuestion={onNextQuestion} />
+      );
+      act(() => vi.advanceTimersByTime(delay - 1));
+      expect(onNextQuestion).not.toHaveBeenCalled();
+      act(() => vi.advanceTimersByTime(1));
+      expect(onNextQuestion).toHaveBeenCalledTimes(1);
+    }
+  );
+
+  it.each([null, 1])("does not advance for selection %s", (selection) => {
+    const onNextQuestion = vi.fn();
+    render(
+      <QuizCard question={question} score={0} selectedOptionIndex={selection}
+        onSelectOption={vi.fn()} onNextQuestion={onNextQuestion} />
     );
-
-    rerender(
-      <QuizCard
-        question={question}
-        score={1}
-        selectedOptionIndex={0}
-        onSelectOption={vi.fn()}
-        onNextQuestion={vi.fn()}
-      />
-    );
-
-    const nextButton = screen.getByRole("button", {
-      name: /Next Question/i,
-    });
-
-    expect(document.activeElement).toBe(nextButton);
+    act(() => vi.advanceTimersByTime(2100));
+    expect(onNextQuestion).not.toHaveBeenCalled();
   });
 
-  
+  it("cancels automatic advance on unmount", () => {
+    const onNextQuestion = vi.fn();
+    const { unmount } = render(
+      <QuizCard question={question} score={1} selectedOptionIndex={0}
+        onSelectOption={vi.fn()} onNextQuestion={onNextQuestion} />
+    );
+    unmount();
+    act(() => vi.advanceTimersByTime(2100));
+    expect(onNextQuestion).not.toHaveBeenCalled();
+  });
+
   it("announces correct answer feedback in a live region", () => {
     renderQuizCard(1, 0);
 
@@ -130,23 +141,26 @@ describe("QuizCard streak milestones", () => {
     ).toBeNull();
 
     expect(
-      screen.getByRole("button", {
+      screen.queryByRole("button", {
         name: /Next Question/i,
       })
-    ).toBeTruthy();
+    ).toBeNull();
   });
 
   it("includes streak achievements in the live region", () => {
     renderQuizCard(10, 0);
 
-    const status = screen.getByRole("status");
+    const statuses = screen.getAllByRole("status");
+    expect(statuses).toHaveLength(2);
+    const [feedback, status] = statuses;
+    expect(status.getAttribute("aria-live")).toBe("polite");
 
-    expect(status.textContent).toContain(
+    expect(feedback.textContent).toContain(
       "Richtig! +1 point"
     );
 
     expect(status.textContent).toContain(
-      "10 in a row!"
+      "10 IN A ROW!"
     );
 
     expect(status.textContent).toContain(

@@ -41,12 +41,16 @@ vi.mock("@/lib/quiz-client", async (importOriginal) => {
 });
 
 beforeEach(() => {
+  vi.useFakeTimers({ shouldAdvanceTime: true });
+  vi.spyOn(window, "scrollTo").mockImplementation(() => {});
   mockFetchQuizBatch.mockReset();
   localStorage.clear();
 });
 
 afterEach(() => {
   cleanup();
+  vi.useRealTimers();
+  vi.restoreAllMocks();
 });
 
 
@@ -98,14 +102,16 @@ const secondBatch = createQuestions(11, 10);
 
 
 
+function advanceToNextQuestion() {
+  act(() => {
+    vi.advanceTimersByTime(2100);
+  });
+}
+
 function answerCorrectlyThrough(lastQuestion: number) {
   for (let number = 1; number <= lastQuestion; number++) {
     if (number > 1) {
-      fireEvent.click(
-        screen.getByRole("button", {
-          name: /Next Question/i,
-        })
-      );
+      advanceToNextQuestion();
     }
 
     expect(
@@ -184,11 +190,7 @@ describe("German Vocabulary Gameplay", () => {
     ).toBeTruthy();
 
     // Move to next question
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: /Next Question/i,
-      })
-    );
+    advanceToNextQuestion();
 
     expect(
       screen.getByRole("heading", { name: "Haus" })
@@ -258,11 +260,7 @@ describe("German Vocabulary Gameplay", () => {
     );
 
     // Request the next batch
-    fireEvent.click(
-        screen.getByRole("button", {
-        name: /Next Question/i,
-        })
-    );
+    advanceToNextQuestion();
 
     // The mocked request fails
     const retryButton = await screen.findByRole(
@@ -318,11 +316,7 @@ describe("German Vocabulary Gameplay", () => {
         screen.getByRole("button", { name: /Apple/i })
     );
 
-    fireEvent.click(
-        screen.getByRole("button", {
-        name: /Next Question/i,
-        })
-    );
+    advanceToNextQuestion();
 
     expect(
         await screen.findByRole("heading", {
@@ -362,22 +356,14 @@ describe("German Vocabulary Gameplay", () => {
     expect(mockFetchQuizBatch).toHaveBeenCalledTimes(2);
 
     // Move to question 11
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: /Next Question/i,
-      })
-    );
+    advanceToNextQuestion();
 
     await screen.findByRole("heading", { name: "Testwort 11" });
 
     // Correctly answer questions 11–20
     for (let number = 11; number <= 20; number++) {
       if (number > 11) {
-        fireEvent.click(
-          screen.getByRole("button", {
-            name: /Next Question/i,
-          })
-        );
+        advanceToNextQuestion();
       }
 
       expect(
@@ -440,11 +426,7 @@ describe("German Vocabulary Gameplay", () => {
     );
 
     // Move to question 2
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: /Next Question/i,
-      })
-    );
+    advanceToNextQuestion();
 
     expect(
       screen.getByRole("heading", { name: "Testwort 2" })
@@ -720,22 +702,14 @@ describe("German Vocabulary Gameplay", () => {
     answerCorrectlyThrough(10);
 
     // Advance to question 11
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: /Next Question/i,
-      })
-    );
+    advanceToNextQuestion();
 
     await screen.findByRole("heading", { name: "Testwort 11" });
 
     // Complete questions 11–20
     for (let number = 11; number <= 20; number++) {
       if (number > 11) {
-        fireEvent.click(
-          screen.getByRole("button", {
-            name: /Next Question/i,
-          })
-        );
+        advanceToNextQuestion();
       }
 
       fireEvent.click(
@@ -800,11 +774,11 @@ describe("German Vocabulary Gameplay", () => {
 
     // Loader appears while Claude's response is pending
     expect(
-      screen.getByText("Building your vocabulary quiz...")
+      screen.getByRole("region", { name: "Compound Word Factory loading animation" })
     ).toBeTruthy();
 
     expect(
-      screen.getByText("Wortschatztest")
+      screen.getByRole("heading", { name: "Wort-Fabrik" })
     ).toBeTruthy();
 
     // Resolve the API request
@@ -823,7 +797,7 @@ describe("German Vocabulary Gameplay", () => {
     ).toBeTruthy();
 
     expect(
-      screen.queryByText("Building your vocabulary quiz...")
+      screen.queryByRole("region", { name: "Compound Word Factory loading animation" })
     ).toBeNull();
   });
 
@@ -842,9 +816,7 @@ describe("German Vocabulary Gameplay", () => {
 
     // Loading state
     expect(
-      screen.getByText(
-        "Generating your vocabulary questions..."
-      )
+      screen.getByRole("region", { name: "Compound Word Factory loading animation" })
     ).toBeTruthy();
 
     // Complete the pending API request
@@ -864,9 +836,7 @@ describe("German Vocabulary Gameplay", () => {
 
     // Loader has disappeared
     expect(
-      screen.queryByText(
-        "Generating your vocabulary questions..."
-      )
+      screen.queryByRole("region", { name: "Compound Word Factory loading animation" })
     ).toBeNull();
   });
 
@@ -944,11 +914,7 @@ describe("Background Prefetching", () => {
     expect(mockFetchQuizBatch).toHaveBeenCalledTimes(1);
 
     // Advance and answer question 5
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: /Next Question/i,
-      })
-    );
+    advanceToNextQuestion();
 
     fireEvent.click(
     screen.getByRole("button", {
@@ -960,11 +926,7 @@ describe("Background Prefetching", () => {
     expect(mockFetchQuizBatch).toHaveBeenCalledTimes(2);
 
     // Continue playing while fetch is unresolved
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: /Next Question/i,
-      })
-    );
+    advanceToNextQuestion();
 
     expect(
       screen.getByRole("heading", { name: "Testwort 6" })
@@ -995,11 +957,7 @@ describe("Background Prefetching", () => {
     expect(mockFetchQuizBatch).toHaveBeenCalledTimes(2);
 
     // Player requests question 11
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: /Next Question/i,
-      })
-    );
+    advanceToNextQuestion();
 
     // No third request should be created
     expect(mockFetchQuizBatch).toHaveBeenCalledTimes(2);
@@ -1067,11 +1025,7 @@ describe("Background Prefetching", () => {
 
     // Continue answering questions 6–10.
     for (let number = 6; number <= 10; number++) {
-      fireEvent.click(
-        screen.getByRole("button", {
-          name: /Next Question/i,
-        })
-      );
+      advanceToNextQuestion();
 
       expect(
         screen.getByRole("heading", { name: `Testwort ${number}` })
@@ -1087,11 +1041,7 @@ describe("Background Prefetching", () => {
     // Request question 11.
     // Since the earlier prefetch already failed,
     // the application should start a new request.
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: /Next Question/i,
-      })
-    );
+    advanceToNextQuestion();
 
     expect(
       await screen.findByRole("heading", { name: "Testwort 11" })
@@ -1126,11 +1076,7 @@ describe("Background Prefetching", () => {
     });
 
     // Player can continue to question 6
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: /Next Question/i,
-      })
-    );
+    advanceToNextQuestion();
 
     expect(
       screen.getByRole("heading", { name: "Testwort 6" })
@@ -1140,11 +1086,7 @@ describe("Background Prefetching", () => {
     // Continue through question 10
     for (let number = 6; number <= 10; number++) {
       if (number > 6) {
-        fireEvent.click(
-          screen.getByRole("button", {
-            name: /Next Question/i,
-          })
-        );
+        advanceToNextQuestion();
       }
 
       // Verify the expected question is displayed
@@ -1162,11 +1104,7 @@ describe("Background Prefetching", () => {
 
 
     // Now there are no buffered questions left
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: /Next Question/i,
-      })
-    );
+    advanceToNextQuestion();
 
     expect(
       await screen.findByRole("heading", {
@@ -1200,11 +1138,7 @@ describe("Background Prefetching", () => {
     expect(mockFetchQuizBatch).toHaveBeenCalledTimes(2);
 
     // Advance to question 6
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: /Next Question/i,
-      })
-    );
+    advanceToNextQuestion();
 
     // Wrong answer
     fireEvent.click(
@@ -1268,11 +1202,7 @@ describe("Background Prefetching", () => {
     });
 
     // Continue to question 11
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: /Next Question/i,
-      })
-    );
+    advanceToNextQuestion();
 
     expect(
       await screen.findByRole("heading", { name: "Testwort 11" })
@@ -1281,11 +1211,7 @@ describe("Background Prefetching", () => {
     // Answer questions 11 through 20
     for (let number = 11; number <= 20; number++) {
       if (number > 11) {
-        fireEvent.click(
-          screen.getByRole("button", {
-            name: /Next Question/i,
-          })
-        );
+        advanceToNextQuestion();
       }
 
       expect(
@@ -1340,9 +1266,7 @@ describe("Background Prefetching", () => {
 
     // The learner can continue without the loader
     expect(
-      screen.queryByText(
-        "Preparing more vocabulary questions..."
-      )
+      screen.queryByRole("region", { name: "Compound Word Factory loading animation" })
     ).toBeNull();
 
     // Resolve the background request
@@ -1445,11 +1369,7 @@ describe("Navigation and Request Cleanup", () => {
       })
     );
 
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: /Next Question/i,
-      })
-    );
+    advanceToNextQuestion();
 
     // Lose on question 2
     fireEvent.click(
@@ -1505,9 +1425,7 @@ describe("Navigation and Request Cleanup", () => {
     startA1Game();
 
     expect(
-      screen.getByText(
-        "Generating your vocabulary questions..."
-      )
+      screen.getByRole("region", { name: "Compound Word Factory loading animation" })
     ).toBeTruthy();
 
     // Exit Quiz should not be available yet
