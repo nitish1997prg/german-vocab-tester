@@ -15,6 +15,7 @@ import ReportQuestion from "@/components/ReportQuestion";
 import HomeScreen from "@/components/home/HomeScreen";
 import BauhausQuizProgress from "@/components/quiz/BauhausQuizProgress";
 import UmlautCatcherLoader from "@/components/quiz/UmlautCatcherLoader";
+import CompoundWordFactoryLoader from "@/components/quiz/CompoundWordFactoryLoader";
 
 //Utility functions
 import { fetchQuizBatch } from "@/lib/quiz-client";
@@ -642,7 +643,10 @@ export default function Home() {
         )}
 
       </div>
-     <UmlautCatcherLoader active={isLoading} />
+     {/* <UmlautCatcherLoader active={isLoading} /> */}
+     <CompoundWordFactoryLoader
+        active={isLoading && !error}
+      />
     </main>
   );
 }
