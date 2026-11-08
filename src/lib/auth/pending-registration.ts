@@ -91,3 +91,11 @@ export async function getPendingRegistration(
     getPendingRegistrationKey(email)
   );
 }
+
+export async function clearPendingRegistration(
+  email: string
+): Promise<void> {
+  await getRedis().del(
+    getPendingRegistrationKey(email)
+  );
+}

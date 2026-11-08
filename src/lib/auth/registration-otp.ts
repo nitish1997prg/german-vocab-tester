@@ -110,3 +110,88 @@ export async function issueRegistrationOTP(
 
   return "sent";
 }
+
+const VERIFY_REGISTRATION_OTP_SCRIPT = `
+  local raw = redis.call("GET", KEYS[1])
+
+  if not raw then
+    return "expired"
+  end
+
+  local record = cjson.decode(raw)
+  local attempts = tonumber(record.attempts) or 0
+  local maxAttempts = tonumber(ARGV[2])
+
+  if attempts >= maxAttempts then
+    redis.call("DEL", KEYS[1])
+    return "locked"
+  end
+
+  if record.codeHash == ARGV[1] then
+    redis.call("DEL", KEYS[1])
+    return "verified"
+  end
+
+  attempts = attempts + 1
+
+  if attempts >= maxAttempts then
+    redis.call("DEL", KEYS[1])
+    return "locked"
+  end
+
+  local ttl = redis.call("PTTL", KEYS[1])
+
+  if ttl <= 0 then
+    redis.call("DEL", KEYS[1])
+    return "expired"
+  end
+
+  record.attempts = attempts
+
+  redis.call(
+    "SET",
+    KEYS[1],
+    cjson.encode(record),
+    "PX",
+    ttl
+  )
+
+  return "incorrect"
+`;
+
+export type RegistrationOTPVerificationResult =
+  | "verified"
+  | "incorrect"
+  | "locked"
+  | "expired";
+
+export async function verifyAndConsumeRegistrationOTP(
+  email: string,
+  code: string
+): Promise<RegistrationOTPVerificationResult> {
+  const identifier = getRegistrationEmailHash(email);
+
+  const otpKey = `auth:registration-otp:${identifier}`;
+
+  // Reuse the HMAC function from Checkpoint 12.4C.2.
+  const submittedHash = hashOTP(email, code);
+
+  const redis = Redis.fromEnv();
+
+  const result = await redis.eval(
+    VERIFY_REGISTRATION_OTP_SCRIPT,
+    [otpKey],
+    [submittedHash, 5]
+  );
+
+  if (
+    result !== "verified" &&
+    result !== "incorrect" &&
+    result !== "locked" &&
+    result !== "expired"
+  ) {
+    throw new Error("Unexpected OTP verification result");
+  }
+
+  return result;
+}
