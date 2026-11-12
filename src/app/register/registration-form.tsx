@@ -80,6 +80,12 @@ export default function RegistrationForm() {
       );
 
       if (!response.ok) {
+        if (response.status === 409) {
+          throw new Error(
+            "An account with this email already exists. Please use another email."
+          );
+        }
+
         if (response.status === 429) {
           throw new Error(
             "A code was recently requested. Please wait a minute before trying again."
@@ -121,14 +127,10 @@ export default function RegistrationForm() {
       <div className={styles.container}>
         <header className={styles.header}>
           <Link href="/" className={styles.brand} aria-label="German Vocab home">
-            <span className={`${styles.brandSubtitle} ${mono.className}`}>
-              DEUTSCH ? A1?B2
-            </span>
             <span className={styles.brandName}>
               German Vocab<span className={styles.brandDot}>.</span>
             </span>
           </Link>
-          <Link href="/" className={styles.backLink}>Back to practice &rarr;</Link>
         </header>
 
         <section className={styles.card}>

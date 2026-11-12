@@ -14,20 +14,8 @@
 
 .header { margin-bottom: 32px; }
 .brand { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; text-decoration: none; color: inherit; }
-.brandSubtitle {
-  border: 1px solid var(--wm-border);
-  border-radius: 999px;
-  background: var(--wm-surface);
-  padding: 8px 12px;
-  color: #d1d5db;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1px;
-}
 .brandName { font-size: clamp(1.9rem, 8vw, 2.5rem); font-weight: 800; letter-spacing: -0.04em; line-height: 1.25; }
 .brandDot { color: var(--wm-amber); }
-.backLink { display: inline-block; margin-top: 16px; color: var(--wm-muted); font-size: 12px; text-decoration: none; }
-.backLink:hover { color: var(--wm-amber); }
 .card { border: 1px solid var(--wm-border); border-radius: 24px; background: var(--wm-surface); padding: 28px 24px; }
 .stepLabel { display: inline-block; margin-bottom: 16px; color: var(--wm-amber); font-size: 10px; font-weight: 700; letter-spacing: 0.15em; }
 .title { margin: 0; font-size: clamp(26px, 7vw, 32px); font-weight: 800; line-height: 1.2; letter-spacing: -0.04em; }
@@ -59,7 +47,7 @@
 .secondaryButton:hover { background: var(--wm-surface-hover); }
 .submitButton:not(:disabled):active, .secondaryButton:active { transform: scale(0.98); }
 .submitButton:disabled { opacity: 0.65; cursor: wait; }
-.submitButton:focus-visible, .secondaryButton:focus-visible, .brand:focus-visible, .backLink:focus-visible { outline: 2px solid var(--wm-amber-light); outline-offset: 4px; }
+.submitButton:focus-visible, .secondaryButton:focus-visible, .brand:focus-visible { outline: 2px solid var(--wm-amber-light); outline-offset: 4px; }
 .footerText { margin: 24px 0 0; color: var(--wm-muted); font-size: 11px; line-height: 1.7; text-align: center; }
 .success { text-align: center; }
 .successSymbol { display: flex; align-items: center; justify-content: center; width: 64px; height: 64px; margin: 4px auto 24px; border: 1px solid var(--wm-green); border-radius: 20px; background: rgb(16 185 129 / 10%); color: var(--wm-green); font-size: 30px; }

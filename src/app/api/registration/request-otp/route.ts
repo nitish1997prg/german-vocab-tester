@@ -50,12 +50,11 @@ export async function POST(request: Request) {
       select: { id: true },
     });
 
-    // Generic response to avoid revealing account existence
-    // through the response body.
     if (existingUser) {
-      return Response.json({
-        message: "If eligible, a verification code will be sent.",
-      });
+      return Response.json(
+        { error: "An account with this email already exists." },
+        { status: 409 }
+      );
     }
 
     // NX prevents replacing an existing pending registration.
