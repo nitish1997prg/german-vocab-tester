@@ -22,7 +22,6 @@ export function AuthNavigation() {
 }
 
 function AuthNavigationEnabled() {
-  const router = useRouter();
   const {
     data: session,
     isPending,
@@ -50,8 +49,7 @@ function AuthNavigationEnabled() {
       }
 
       // Refresh server-rendered content after the session cookie is cleared.
-      router.replace("/");
-      router.refresh();
+      window.location.replace("/login");
     } catch {
       setSignOutError(
         "Network error. Please try again."

@@ -103,8 +103,14 @@ export function LoginForm() {
         return;
       }
 
+      // Better Auth has successfully verified the login OTP
+      // and established the browser session.
       setLoginComplete(true);
+
+      // Enter the protected German Vocab application.
+      window.location.replace("/");
     } catch {
+      setLoginComplete(false);
       setVerificationError(
         "Network error. Please check your connection and try again."
       );
@@ -229,33 +235,20 @@ export function LoginForm() {
           </div>
 
           <span className={`${styles.stepLabel} ${mono.className}`}>
-            LOGIN / {loginComplete ? "03" : sentEmail ? "02" : "01"}
+            LOGIN / {sentEmail ? "02" : "01"}
           </span>
         </header>
 
           {sentEmail ? (
     <section className={styles.content}>
       <div className={styles.successSymbol} aria-hidden="true">
-        {loginComplete ? "✓" : "✉"}
+        ✉
       </div>
 
       <h1 className={styles.title}>
-        {loginComplete
-          ? "Welcome back."
-          : "Check your inbox."}
+        Check your inbox.
       </h1>
 
-      {loginComplete ? (
-        <>
-          <p className={styles.description} role="status">
-            You&apos;re signed in successfully.
-          </p>
-
-          <Link href="/" className={styles.verifyButton}>
-            CONTINUE TO APP
-          </Link>
-        </>
-      ) : (
         <>
           <p className={styles.description}>
             If an account exists for this address,
@@ -273,7 +266,7 @@ export function LoginForm() {
                 setOtp(value);
                 setVerificationError("");
               }}
-              disabled={isVerifying || isResending}
+              disabled={isVerifying || isResending || loginComplete}
               error={verificationError || undefined}
             />
           </div>
@@ -285,11 +278,12 @@ export function LoginForm() {
             disabled={
               otp.length !== 6 ||
               isVerifying ||
+              loginComplete ||
               isResending ||
               isOtpExpired
             }
           >
-            {isVerifying
+            {isVerifying || loginComplete
               ? "VERIFYING..."
               : "VERIFY LOGIN"}
           </button>
@@ -313,7 +307,7 @@ export function LoginForm() {
                 type="button"
                 className={styles.resendButton}
                 onClick={handleResendLoginOtp}
-                disabled={isResending || isVerifying}
+                disabled={isResending || isVerifying || loginComplete}
               >
                 {isResending ? "SENDING..." : "RESEND CODE"}
               </button>
@@ -331,7 +325,7 @@ export function LoginForm() {
           <button
             type="button"
             className={styles.secondaryButton}
-            disabled={isVerifying}
+            disabled={isVerifying || loginComplete}
             onClick={() => {
               setSentEmail(null);
               setError("");
@@ -345,7 +339,6 @@ export function LoginForm() {
             USE ANOTHER EMAIL
           </button>
         </>
-      )}
     </section>
   ) : (
           <section className={styles.content}>

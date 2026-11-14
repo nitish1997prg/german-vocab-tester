@@ -233,8 +233,13 @@ export default function RegistrationForm() {
         return;
       }
 
+      // Registration succeeded and Better Auth issued the session.
       setRegistrationComplete(true);
       setOtp("");
+
+      // Full navigation ensures the protected app loads
+      // using the newly issued session cookie.
+      window.location.replace("/");
     } catch {
       setVerificationError(
         "Unable to connect to the server. Please try again."
