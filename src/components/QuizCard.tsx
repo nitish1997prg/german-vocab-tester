@@ -10,6 +10,8 @@ import BauhausQuestionPanel from "@/components/quiz/BauhausQuestionPanel";
 import { playSound } from "@/lib/sound-effects";
 import { playHaptic } from "@/lib/haptics";
 
+//Quiz props
+
 interface QuizCardProps {
   question: VocabularyQuestion;
   score: number;

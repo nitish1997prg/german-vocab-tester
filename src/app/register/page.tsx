@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 
 import { getCurrentSession } from "@/lib/auth-session";
-import { RegistrationForm } from "./registration-form";
+import RegistrationForm from "./registration-form";
 
 export default async function RegisterPage() {
   const enabled =
