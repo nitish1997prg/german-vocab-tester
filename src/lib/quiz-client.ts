@@ -5,6 +5,8 @@ import type { GermanLevel } from "@/types/quiz";
 import type { GenerateQuizResponse } from "@/types/quiz-api";
 import { VocabularyQuestionSchema } from "@/lib/quiz-schema";
 
+import { protectedFetch } from "@/lib/auth/protected-fetch";
+
 
 export class QuizApiError extends Error {
   constructor(
@@ -36,7 +38,7 @@ export async function fetchQuizBatch(
   signal?: AbortSignal | undefined,
   startQuestionNumber: number = 1
 ): Promise<GenerateQuizResponse> {
-  const response = await fetch("/api/quiz", {
+  const response = await protectedFetch("/api/quiz", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

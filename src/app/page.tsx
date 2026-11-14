@@ -25,7 +25,8 @@ import { QuizApiError } from "@/lib/quiz-client";
 
 import { AuthNavigation } from "@/components/auth/auth-navigation";
 
-
+import { SessionExpiryGuard } from
+  "@/components/auth/session-expiry-guard";
 
 
 type GameStatus =
@@ -494,6 +495,7 @@ export default function Home() {
 
 
   return (
+    <SessionExpiryGuard>
     <main className= "flex min-h-dvh w-full flex-col bg-[var(--wm-canvas)] text-[var(--wm-text)]">
     <div className= {`
         mx-auto flex w-full min-w-0
@@ -642,5 +644,6 @@ export default function Home() {
         active={isLoading && !error}
       />
     </main>
+    </SessionExpiryGuard>
   );
 }

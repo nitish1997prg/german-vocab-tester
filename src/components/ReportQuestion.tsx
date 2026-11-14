@@ -12,6 +12,8 @@ import type {
   ReportReason,
 } from "@/lib/report-schema";
 
+import { protectedFetch } from "@/lib/auth/protected-fetch";
+
 type Props = {
   level: GermanLevel;
   question: VocabularyQuestion;
@@ -44,7 +46,7 @@ export default function ReportQuestion({
     setStatus("idle");
 
     try {
-      const response = await fetch("/api/report", {
+      const response = await protectedFetch("/api/report", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

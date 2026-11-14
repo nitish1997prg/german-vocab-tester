@@ -10,6 +10,11 @@ export const authClient = createAuthClient({
     inferAdditionalFields<typeof auth>(),
     emailOTPClient()
   ],
+  sessionOptions: {
+      refetchInterval: 60,
+      refetchOnWindowFocus: true,
+      refetchWhenOffline: false,
+    },
 });
 
 export type AuthSession = typeof authClient.$Infer.Session;
