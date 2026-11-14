@@ -14,7 +14,7 @@ import { POST } from "./route";
 
 beforeEach(() => {
   vi.resetAllMocks();
-  vi.stubEnv("NODE_ENV", "development");
+  vi.stubEnv("NODE_ENV", "production");
   vi.stubEnv("AUTH_OTP_ENABLED", "true");
 });
 
@@ -26,6 +26,16 @@ function request() {
     body: JSON.stringify({ firstName: "Alex", email: "alex@example.com" }),
   });
 }
+
+it("keeps registration disabled when the feature flag is off", async () => {
+  vi.stubEnv("AUTH_OTP_ENABLED", "false");
+  const response = await POST(request());
+
+  expect(response.status).toBe(404);
+  expect(mocks.findUser).not.toHaveBeenCalled();
+  expect(mocks.savePending).not.toHaveBeenCalled();
+  expect(mocks.issueOTP).not.toHaveBeenCalled();
+});
 
 it("rejects an existing account without saving registration or issuing an OTP", async () => {
   mocks.findUser.mockResolvedValue({ id: "existing-user" });

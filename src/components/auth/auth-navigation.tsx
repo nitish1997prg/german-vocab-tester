@@ -9,7 +9,6 @@ import { authClient } from "@/lib/auth-client";
 import styles from "./auth-navigation.module.css";
 
 const authUiEnabled =
-  process.env.NODE_ENV === "development" &&
   process.env.NEXT_PUBLIC_AUTH_UI_ENABLED === "true";
 
 export function AuthNavigation() {

@@ -9,7 +9,6 @@ import { registrationSessionPlugin } from "@/lib/auth-plugins/registration-sessi
 import { prisma } from "@/lib/prisma";
 
 const otpEnabled =
-  process.env.NODE_ENV === "development" &&
   process.env.AUTH_OTP_ENABLED === "true";
 
 export const auth = betterAuth({

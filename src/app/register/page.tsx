@@ -5,7 +5,6 @@ import RegistrationForm from "./registration-form";
 
 export default async function RegisterPage() {
   const enabled =
-    process.env.NODE_ENV === "development" &&
     process.env.AUTH_OTP_ENABLED === "true";
 
   if (!enabled) {

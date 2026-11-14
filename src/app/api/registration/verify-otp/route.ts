@@ -25,11 +25,7 @@ function isUniqueConstraintError(error: unknown): boolean {
 }
 
 export async function POST(request: Request) {
-  // Registration remains local-development only.
-  if (
-    process.env.NODE_ENV !== "development" ||
-    process.env.AUTH_OTP_ENABLED !== "true"
-  ) {
+  if (process.env.AUTH_OTP_ENABLED !== "true") {
     return new Response(null, { status: 404 });
   }
 

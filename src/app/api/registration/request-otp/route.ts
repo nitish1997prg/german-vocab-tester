@@ -13,11 +13,7 @@ import { prisma } from "@/lib/prisma";
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
-  // Do not expose unfinished registration in production.
-  if (
-    process.env.NODE_ENV !== "development" ||
-    process.env.AUTH_OTP_ENABLED !== "true"
-  ) {
+  if (process.env.AUTH_OTP_ENABLED !== "true") {
     return new Response(null, { status: 404 });
   }
 
