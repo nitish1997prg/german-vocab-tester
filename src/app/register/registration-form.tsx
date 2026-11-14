@@ -276,8 +276,6 @@ export default function RegistrationForm() {
         }
       );
 
-      const data = await response.json().catch(() => null);
-
       if (!response.ok) {
         if (response.status === 429) {
           setResendError(
@@ -349,12 +347,12 @@ export default function RegistrationForm() {
           has been created successfully.
         </p>
 
-        <a
+        <Link
           href="/"
           className={styles.verifyButton}
         >
           CONTINUE TO APP
-        </a>
+        </Link>
       </>
     ) : (
       <>

@@ -20,6 +20,8 @@ import {
   MAX_QUESTIONS_PER_GAME, shuffleQuestionsWithinDifficulty,
 } from "@/lib/quiz-difficulty";
 
+import { requireApiAuth } from "@/lib/auth/require-api-auth";
+
 import crypto from 'node:crypto';
 
 const validLevels: GermanLevel[] = ["A1", "A2", "B1", "B2"];
@@ -192,7 +194,13 @@ async function readLimitedJson(
 
 
 export async function POST(request: Request) {
+
   try {
+    const authError = await requireApiAuth(request);
+
+    if (authError) {
+      return authError;
+    }
     let body: unknown;
 
     try {

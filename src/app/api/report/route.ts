@@ -6,6 +6,8 @@ import { createHmac, randomUUID } from "node:crypto";
 
 import { QuestionReportSchema } from "@/lib/report-schema";
 
+import { requireApiAuth } from "@/lib/auth/require-api-auth";
+
 export const runtime = "nodejs";
 
 const MAX_BODY_BYTES = 4096;
@@ -45,6 +47,12 @@ async function readBoundedJson(request: Request) {
 }
 
 export async function POST(request: Request) {
+  
+  const authError = await requireApiAuth(request);
+
+  if (authError) {
+    return authError;
+  }
   let body: unknown;
 
   try {

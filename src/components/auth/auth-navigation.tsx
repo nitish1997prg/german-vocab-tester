@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { authClient } from "@/lib/auth-client";
 
@@ -21,6 +22,7 @@ export function AuthNavigation() {
 }
 
 function AuthNavigationEnabled() {
+  const router = useRouter();
   const {
     data: session,
     isPending,
@@ -47,9 +49,9 @@ function AuthNavigationEnabled() {
         return;
       }
 
-      // Full navigation refreshes server-rendered
-      // content after the session cookie is cleared.
-      window.location.assign("/");
+      // Refresh server-rendered content after the session cookie is cleared.
+      router.replace("/");
+      router.refresh();
     } catch {
       setSignOutError(
         "Network error. Please try again."
