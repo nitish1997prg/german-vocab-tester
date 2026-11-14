@@ -23,6 +23,8 @@ import { buildQuestionReportMailto } from "@/lib/question-report";
 
 import { QuizApiError } from "@/lib/quiz-client";
 
+import { AuthNavigation } from "@/components/auth/auth-navigation";
+
 
 
 
@@ -477,7 +479,10 @@ export default function Home() {
 
   if (selectedLevel === null) {
     return (
-      <HomeScreen onSelectLevel={startGame} />
+      <HomeScreen
+        onSelectLevel={startGame}
+        navigation={<AuthNavigation />}
+      />
     );
   }
   
@@ -499,6 +504,7 @@ export default function Home() {
 
         ${shouldCenterQuiz ? "my-auto" : "my-0"}
       `}>
+      <AuthNavigation />
   
 
       

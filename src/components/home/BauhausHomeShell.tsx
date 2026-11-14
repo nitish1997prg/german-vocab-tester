@@ -7,10 +7,12 @@ import { jakarta } from "@/lib/fonts";
 
 type Props = {
   children: ReactNode;
+  navigation?: ReactNode;
 };
 
 export default function BauhausHomeShell({
   children,
+  navigation,
 }: Props) {
   return (
     <div
@@ -37,6 +39,9 @@ export default function BauhausHomeShell({
                    w-full max-w-md flex-col px-5
                    pt-6 pb-5"
       >
+        <div className="mb-5 empty:hidden">
+          {navigation}
+        </div>
         <BauhausHeader />
 
         {/* Home content — vertically balanced */}

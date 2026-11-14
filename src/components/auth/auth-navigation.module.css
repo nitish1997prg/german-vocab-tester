@@ -1,0 +1,130 @@
+.account {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.root {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.outlineButton,
+.primaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: 44px;
+  max-width: 100%;
+  padding: 10px 16px;
+  border: 1px solid var(--wm-border);
+  border-radius: 12px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.5;
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease,
+    filter 150ms ease, transform 150ms ease;
+}
+
+.outlineButton {
+  background: var(--wm-surface);
+  color: var(--wm-text);
+}
+
+.primaryButton {
+  border-color: transparent;
+  background: linear-gradient(to right, var(--wm-amber), #d97706);
+  color: var(--wm-canvas);
+  box-shadow: 0 8px 30px -10px rgb(245 158 11 / 45%);
+}
+
+.outlineButton:not(:disabled):hover {
+  border-color: var(--wm-muted);
+  background: var(--wm-surface-hover);
+}
+
+.primaryButton:not(:disabled):hover {
+  filter: brightness(1.1);
+}
+
+.outlineButton:not(:disabled):active,
+.primaryButton:not(:disabled):active {
+  transform: scale(0.98);
+}
+
+.outlineButton:focus-visible,
+.primaryButton:focus-visible {
+  outline: 2px solid var(--wm-amber-light);
+  outline-offset: 4px;
+}
+
+.outlineButton:disabled,
+.primaryButton:disabled {
+  opacity: 0.65;
+  cursor: wait;
+  box-shadow: none;
+}
+
+.userName,
+.loading {
+  min-width: 0;
+  color: var(--wm-muted);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.6;
+  letter-spacing: 0.08em;
+  overflow-wrap: anywhere;
+}
+
+.userName {
+  color: var(--wm-text);
+  text-transform: uppercase;
+}
+
+.loading {
+  padding-block: 14px;
+}
+
+.error {
+  min-width: 0;
+  margin: 0;
+  color: var(--wm-red);
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 360px) {
+  .outlineButton,
+  .primaryButton {
+    padding-inline: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .outlineButton,
+  .primaryButton {
+    transition: none;
+  }
+
+  .outlineButton:not(:disabled):active,
+  .primaryButton:not(:disabled):active {
+    transform: none;
+  }
+}
